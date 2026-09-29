@@ -185,7 +185,7 @@
       const s = O9.store.get();
       const data = {
         taskId: task.id, groupCode: task.groupCode, uid: uid(),
-        studentName: s.profile.name || O9.cloud.user.displayName || '', email: O9.cloud.user.email || '',
+        studentName: s.profile.name || O9.cloud.user.displayName || '', email: O9.cloud.userEmail(O9.cloud.user),
         files: uploaded, comment: comment || '', submittedAt: Date.now(), status: 'entregada'
       };
       await db().collection('entregas').doc(task.id + '_' + uid()).set(data, { merge: true });

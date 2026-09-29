@@ -164,6 +164,36 @@ Por seguridad, solo pueden ver el panel las cuentas que tú agregues a mano:
 
 Además, **publica las reglas actualizadas**: copia de nuevo todo el contenido de `firestore.rules` en **Firestore → Reglas** y pulsa **Publicar**. Las reglas nuevas son las que permiten a los docentes leer el progreso de los estudiantes.
 
+## Iniciar sesión con Microsoft (Outlook, Hotmail u Office 365 del colegio)
+
+La página ya trae el botón **Continuar con Microsoft** (`microsoft: true` en `js/core/firebase-config.js`). Para que funcione hay que conectar Firebase con Microsoft **una sola vez**:
+
+**A. Registrar la aplicación en Microsoft (Azure / Entra ID)**
+1. Entra a **https://portal.azure.com** con una cuenta de Microsoft. Si el colegio usa Office 365, lo ideal es que lo haga el administrador de sistemas.
+2. Busca **Microsoft Entra ID** → **Registros de aplicaciones** (*App registrations*) → **Nuevo registro**.
+3. Nombre: `Ofimática 9°`.
+4. **Tipos de cuenta admitidos:** *Cuentas de cualquier directorio organizativo y cuentas personales de Microsoft*. Si solo quieres cuentas del colegio, elige *Solo este directorio organizativo*.
+5. **URI de redirección:** tipo **Web**, valor:
+   ```
+   https://ofimatica9-a1993.firebaseapp.com/__/auth/handler
+   ```
+6. Pulsa **Registrar** y copia el **Id. de aplicación (cliente)**.
+7. Ve a **Certificados y secretos → Nuevo secreto de cliente**, ponle una descripción, elige la duración (máximo 24 meses) y copia el **Valor**. Ojo: el valor, no el "Id. de secreto". Solo se muestra una vez.
+
+**B. Activarlo en Firebase**
+1. **Authentication → Método de acceso → Agregar proveedor nuevo → Microsoft**.
+2. Actívalo y pega el **Id. de aplicación** y el **Secreto de la aplicación**. Pulsa **Guardar**.
+
+**C. (Opcional) Solo cuentas del colegio**
+En `js/core/firebase-config.js` cambia `microsoftTenant: 'common'` por `'organizations'` (solo cuentas de trabajo o educativas) o por el **Id. de directorio (inquilino)** del colegio. Así solo pueden entrar cuentas de ese colegio.
+
+**Tener en cuenta**
+- Igual que con Google, al entrar por primera vez el estudiante debe escribir el **código de su grupo** y aceptar el **aviso de privacidad**.
+- El **secreto vence** (máximo 24 meses): anota la fecha y crea uno nuevo antes de que venza, o el botón dejará de funcionar.
+- Si aparece *"Se necesita aprobación del administrador"*, el colegio bloquea apps externas: el administrador de Office 365 debe dar **consentimiento de administrador** a la app en Entra ID (*Permisos de API → Conceder consentimiento de administrador*).
+- Si un estudiante ya tenía cuenta con ese mismo correo (con contraseña o Google), debe entrar de la forma en que se registró.
+- **Docentes:** sigan entrando con Google. Las reglas de seguridad exigen correo verificado, y Firebase normalmente no marca así los correos de Microsoft.
+
 ## Grupos y registro obligatorio
 
 La plataforma está configurada con `requireLogin: true`: **nadie puede usarla sin cuenta**.

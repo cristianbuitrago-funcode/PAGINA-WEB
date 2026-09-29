@@ -34,6 +34,8 @@ window.O9.firebaseConfig = {
 window.O9.cloudOptions = {
   requireLogin: true,  // true = todos deben registrarse o iniciar sesión para usar la plataforma
   google: true,        // mostrar el botón "Continuar con Google"
+  microsoft: true,     // mostrar el botón "Continuar con Microsoft" (requiere configurarlo en Firebase, ver FIREBASE.md)
+  microsoftTenant: 'common', // 'common' = cualquier cuenta Microsoft · 'organizations' = solo cuentas del colegio/trabajo · o el ID de inquilino del colegio
   // Datos que aparecen en el aviso de privacidad (#/privacidad)
   institucion: '',        // ej. 'la Institución Educativa San José'
   contactoPrivacidad: ''  // correo para solicitudes sobre datos, ej. 'coordinacion@colegio.edu.co'

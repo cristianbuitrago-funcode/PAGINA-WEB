@@ -43,7 +43,7 @@
           ${O9.cloud.enabled ? `<div class="card">
             <h3>☁️ Cuenta</h3>
             ${O9.cloud.user
-              ? `<p class="muted" style="font-size:.92rem">Sesión iniciada como <b>${esc(O9.cloud.user.email || '')}</b>. Tu progreso se guarda en la nube.</p>
+              ? `<p class="muted" style="font-size:.92rem">Sesión iniciada como <b>${esc(O9.cloud.userEmail(O9.cloud.user))}</b>. Tu progreso se guarda en la nube.</p>
                  ${teacher ? '<p><span class="pill pill-gold">👩‍🏫 Cuenta de docente</span></p>' : `<p>👥 Grupo: <b>${esc((s.group || {}).name || 'sin grupo')}</b></p>`}
                  <a class="btn btn-sm btn-light" href="#/cuenta">Ver mi cuenta</a>`
               : '<p class="muted" style="font-size:.92rem">Regístrate para guardar tu progreso en la nube.</p><a class="btn btn-sm" href="#/cuenta">Iniciar sesión o registrarme</a>'}

@@ -12,6 +12,7 @@
   const codeInput = (id, value) => `<input id="${id}" class="input mono" required maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false"
     placeholder="Ej. K7P2QX" value="${esc(value || '')}" style="text-transform:uppercase;letter-spacing:.2em;font-weight:900;font-size:1.2rem;text-align:center">`;
 
+  const MS_LOGO = '<svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect width="10" height="10" fill="#f25022"/><rect x="11" width="10" height="10" fill="#7fba00"/><rect y="11" width="10" height="10" fill="#00a4ef"/><rect x="11" y="11" width="10" height="10" fill="#ffb900"/></svg>';
   const consentBox = (id) => `<label class="consent"><input type="checkbox" id="${id}"> <span>He leído el <a href="#/privacidad" target="_blank">aviso de privacidad</a> y cuento con la <b>autorización de mi padre, madre o acudiente</b> para usar la plataforma.</span></label>`;
 
   function wrap(root, inner) {
@@ -62,9 +63,12 @@
             <div data-msg></div>
             <button class="btn btn-block btn-lg ${mode === 'login' ? '' : 'btn-green'}" type="submit">${mode === 'login' ? 'Entrar' : 'Crear mi cuenta'}</button>
           </form>
-          ${cloud.google ? `<div class="center muted" style="margin:14px 0 10px;font-weight:700">o</div>
-            <button class="btn btn-light btn-block" data-google><b style="color:#4285f4">G</b> Continuar con Google</button>
-            ${mode === 'register' ? '<p class="muted center" style="font-size:.82rem;margin-top:8px">Con Google te pediremos el código del grupo después de entrar.</p>' : ''}` : ''}
+          ${cloud.google || cloud.microsoft ? `<div class="center muted" style="margin:14px 0 10px;font-weight:700">o</div>
+            <div class="stack" style="gap:8px">
+            ${cloud.microsoft ? `<button class="btn btn-light btn-block" data-microsoft>${MS_LOGO} Continuar con Microsoft</button>` : ''}
+            ${cloud.google ? '<button class="btn btn-light btn-block" data-google><b style="color:#4285f4">G</b> Continuar con Google</button>' : ''}
+            </div>
+            ${mode === 'register' ? `<p class="muted center" style="font-size:.82rem;margin-top:8px">Con ${cloud.microsoft && cloud.google ? 'Microsoft o Google' : cloud.microsoft ? 'Microsoft' : 'Google'} te pediremos el código del grupo después de entrar.</p>` : ''}` : ''}
           ${mode === 'login' ? '<div class="center" style="margin-top:12px"><button class="btn btn-ghost btn-sm" data-forgot>¿Olvidaste tu contraseña?</button></div>' : ''}
         </section>
         <p class="muted center" style="font-size:.85rem;margin-top:14px">👩‍🏫 ¿Eres docente? Entra con <b>Continuar con Google</b> usando el correo registrado como docente.</p>
@@ -104,6 +108,11 @@
       const g = $('[data-google]', root);
       if (g) g.onclick = async () => {
         try { busy(true); await cloud.loginGoogle(); location.hash = '#/'; }
+        catch (err) { busy(false); show(esc(cloud.errorText(err))); }
+      };
+      const ms = $('[data-microsoft]', root);
+      if (ms) ms.onclick = async () => {
+        try { busy(true); await cloud.loginMicrosoft(); location.hash = '#/'; }
         catch (err) { busy(false); show(esc(cloud.errorText(err))); }
       };
       const f = $('[data-forgot]', root);
@@ -146,7 +155,7 @@
     const needG = cloud.needsGroup, needC = cloud.needsConsent;
     wrap(root, `<section class="card" style="padding:24px">
       <div class="center"><div style="font-size:3rem">${needG ? '👥' : '🔒'}</div><h1 style="margin-bottom:4px">${needG ? 'Únete a tu grupo' : 'Un último paso'}</h1>
-      <p class="muted">Hola, <b>${esc(O9.store.get().profile.name || cloud.user.displayName || cloud.user.email)}</b>. ${needG ? 'Para empezar, escribe el código que te dio tu docente.' : 'Antes de continuar, lee y acepta el aviso de privacidad.'}</p></div>
+      <p class="muted">Hola, <b>${esc(O9.store.get().profile.name || cloud.user.displayName || cloud.userEmail(cloud.user))}</b>. ${needG ? 'Para empezar, escribe el código que te dio tu docente.' : 'Antes de continuar, lee y acepta el aviso de privacidad.'}</p></div>
       <form data-join novalidate>
         ${needG ? `<div class="form-row"><label for="jCode">Código del grupo</label>${codeInput('jCode', urlCode)}</div>` : ''}
         ${needC ? consentBox('jConsent') : ''}
@@ -188,7 +197,7 @@
     wrap(root, `<section class="card center" style="padding:28px">
         <div style="font-size:3.5rem">${s.profile.avatar}</div>
         <h1 style="margin-bottom:4px">${esc(s.profile.name || cloud.user.displayName || 'Estudiante')}</h1>
-        <p class="muted">${esc(cloud.user.email || '')}</p>
+        <p class="muted">${esc(cloud.userEmail(cloud.user))}</p>
         <p>${teacher ? '<span class="pill pill-gold">👩‍🏫 Cuenta de docente</span>' : `<span class="pill pill-purple">👥 Grupo: ${esc((s.group || {}).name || '—')}</span>`}</p>
         <p>${cloud.error ? `<span class="pill pill-red">⚠️ ${esc(cloud.error)}</span>` : `<span class="pill pill-green">☁️ Progreso guardado en la nube${last ? ' · ' + O9.util.timeAgo(last) : ''}</span>`}</p>
         <div class="row" style="justify-content:center;margin-top:12px">

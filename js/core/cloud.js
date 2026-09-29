@@ -54,6 +54,8 @@
     'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite ventanas emergentes.',
     'auth/unauthorized-domain': 'Este sitio no está autorizado en Firebase (Authentication → Configuración → Dominios autorizados).',
     'auth/operation-not-allowed': 'Este método de inicio de sesión no está activado en Firebase.',
+    'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese correo, creada de otra forma (con contraseña o con Google). Entra de la misma forma en que te registraste.',
+    'auth/invalid-credential-microsoft': 'Microsoft no aceptó el inicio de sesión. Pide a tu docente que revise la configuración.',
     'permission-denied': 'Firebase rechazó la operación. Revisa que las reglas de Firestore estén actualizadas.',
     'group/empty': 'Escribe el código de tu grupo. Te lo da tu docente.',
     'group/not-found': 'Ese código de grupo no existe. Revisa que esté bien escrito (6 letras o números).',
@@ -61,6 +63,8 @@
   };
   const errorText = (e) => ERRORS[e && e.code] || (e && e.message) || 'Ocurrió un error. Intenta de nuevo.';
   const fail = (code) => { const e = new Error(ERRORS[code]); e.code = code; return e; };
+  /** Correo del usuario (en cuentas de Microsoft a veces solo viene en providerData). */
+  const userEmail = (u) => (u && (u.email || ((u.providerData || []).find((p) => p && p.email) || {}).email)) || '';
   const normCode = (c) => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
   /** Resumen del estudiante que lee el panel del docente. */
@@ -74,7 +78,7 @@
       course: g.name || state.profile.course || '',
       groupCode: g.code || '',
       groupName: g.name || '',
-      email: (cloud.user && cloud.user.email) || '',
+      email: userEmail(cloud.user),
       xp: state.xp,
       points: state.points,
       level: info.level.n,
@@ -165,9 +169,10 @@
   /** Revisa si la cuenta es de docente (documento en docentes/{correo}). */
   async function detectRole(user) {
     let teacher = false;
-    if (user.email) {
+    const mail = userEmail(user);
+    if (mail) {
       try {
-        const snap = await db.collection('docentes').doc(user.email.toLowerCase()).get();
+        const snap = await db.collection('docentes').doc(mail.toLowerCase()).get();
         teacher = snap.exists;
       } catch (e) { teacher = false; }
     }
@@ -190,6 +195,7 @@
     enabled: !!(cfg && cfg.apiKey),
     requireLogin: !!opts.requireLogin,
     google: opts.google !== false,
+    microsoft: !!opts.microsoft,
     user: null,
     role: null,         // 'teacher' | 'student'
     needsGroup: false,  // estudiante con sesión pero sin grupo
@@ -201,6 +207,7 @@
     lastSync: () => lastSync,
     errorText,
     normCode,
+    userEmail,
 
     /** Carga Firebase y espera a saber si hay una sesión abierta. */
     async init() {
@@ -295,6 +302,15 @@
     },
     login: (email, password) => auth.signInWithEmailAndPassword(email.trim(), password),
     loginGoogle: () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()),
+    /** Cuenta de Microsoft (Outlook, Hotmail u Office 365 del colegio). */
+    loginMicrosoft() {
+      const p = new firebase.auth.OAuthProvider('microsoft.com');
+      // tenant: 'common' = cualquier cuenta · 'organizations' = solo cuentas de trabajo/colegio · o el ID del colegio
+      p.setCustomParameters({ prompt: 'select_account', tenant: opts.microsoftTenant || 'common' });
+      p.addScope('email');
+      p.addScope('profile');
+      return auth.signInWithPopup(p);
+    },
     resetPassword: (email) => auth.sendPasswordResetEmail(email.trim()),
 
     /** Cierra sesión y limpia este navegador (importante en computadores compartidos del colegio). */
