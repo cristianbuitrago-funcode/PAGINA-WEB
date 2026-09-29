@@ -15,7 +15,8 @@
 
     // Al iniciar o cerrar sesión, se actualizan las pantallas que muestran la cuenta
     O9.util.on('cloud:auth', () => {
-      if (/^#?\/?(perfil|cuenta)?$/.test(location.hash)) O9.router.refresh();
+      O9.ui.updateChip();
+      O9.router.refresh();
     });
 
     // Con registro obligatorio hay que saber primero si hay sesión abierta

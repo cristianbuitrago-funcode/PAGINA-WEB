@@ -45,29 +45,41 @@ La plataforma ya trae todo el código. Tú solo tienes que crear el proyecto y p
    service cloud.firestore {
      match /databases/{database}/documents {
 
-       // ¿Quien consulta es docente? (tiene un documento en docentes/{su correo}
-       // y su correo está verificado, por ejemplo al entrar con Google)
+       // Docente = tiene un documento en docentes/{su correo} y su correo está verificado (Google)
        function esDocente() {
          return request.auth != null
            && request.auth.token.email_verified == true
            && exists(/databases/$(database)/documents/docentes/$(request.auth.token.email));
        }
 
-       // Progreso de cada estudiante: solo el dueño lo escribe;
-       // lo pueden leer el dueño y los docentes
+       // Progreso: cada uno escribe el suyo; los docentes pueden leer todos
        match /usuarios/{uid} {
          allow read: if request.auth != null && (request.auth.uid == uid || esDocente());
          allow write: if request.auth != null && request.auth.uid == uid;
        }
 
-       // Lista de docentes: cada uno puede comprobar si está en ella.
-       // Se administra solo desde la consola de Firebase.
+       // Grupos: cualquiera puede comprobar un código (para registrarse con él),
+       // pero solo los docentes los listan, y cada docente administra los suyos
+       match /grupos/{code} {
+         allow get: if true;
+         allow list: if esDocente();
+         allow create: if esDocente()
+           && request.resource.data.teacherUid == request.auth.uid
+           && request.resource.data.name is string
+           && request.resource.data.name.size() > 0
+           && request.resource.data.name.size() <= 60;
+         allow update: if esDocente()
+           && resource.data.teacherUid == request.auth.uid
+           && request.resource.data.teacherUid == request.auth.uid;
+         allow delete: if esDocente() && resource.data.teacherUid == request.auth.uid;
+       }
+
+       // Lista de docentes: cada uno puede comprobar si está en ella (se administra desde la consola)
        match /docentes/{email} {
          allow read: if request.auth != null && request.auth.token.email == email;
          allow write: if false;
        }
 
-       // Todo lo demás está cerrado
        match /{document=**} {
          allow read, write: if false;
        }
@@ -77,7 +89,7 @@ La plataforma ya trae todo el código. Tú solo tienes que crear el proyecto y p
 
 5. Pulsa **Publicar**.
 
-Estas reglas hacen que **cada estudiante solo pueda ver y modificar su propio progreso**, y que solo los docentes registrados puedan consultar el avance de todos.
+Estas reglas hacen que **cada estudiante solo pueda ver y modificar su propio progreso**, que solo los docentes puedan consultar el avance de los estudiantes y que cada docente administre únicamente sus propios grupos.
 
 ## Paso 5 · Pegar la configuración en la página
 
@@ -149,6 +161,20 @@ Por seguridad, solo pueden ver el panel las cuentas que tú agregues a mano:
 6. Para más docentes, en la colección `docentes` pulsa **Agregar documento** y repite los pasos 4 y 5.
 
 Además, **publica las reglas actualizadas**: copia de nuevo todo el contenido de `firestore.rules` en **Firestore → Reglas** y pulsa **Publicar**. Las reglas nuevas son las que permiten a los docentes leer el progreso de los estudiantes.
+
+## Grupos y registro obligatorio
+
+La plataforma está configurada con `requireLogin: true`: **nadie puede usarla sin cuenta**.
+
+1. El docente entra con Google, abre **👩‍🏫 Docente** (en el menú; solo lo ven los docentes) y pulsa **➕ Crear grupo**, por ejemplo `9°A 2026`.
+2. Se genera un **código de 6 caracteres**, por ejemplo `K7P2QX`. El docente lo comparte, o comparte el **enlace de registro**, que ya trae el código: `https://cristianbuitrago-funcode.github.io/PAGINA-WEB/#/cuenta/K7P2QX`.
+3. Al crear su cuenta, el estudiante **debe** escribir ese código y queda en el grupo. Si entra con Google, la plataforma le pide el código antes de dejarlo continuar.
+4. Si un grupo se **cierra** (🔒), no recibe estudiantes nuevos. Un grupo solo se puede eliminar si no tiene estudiantes.
+5. Cada docente ve en su panel únicamente a los estudiantes de sus grupos.
+
+Los estudiantes **no ven** el panel ni el enlace al panel. Si alguno escribe `#/docente`, la página lo devuelve al inicio, y además las reglas de Firestore le impiden leer datos de otros.
+
+> Cuentas creadas **antes** de los grupos: la próxima vez que entren se les pedirá el código de su grupo.
 
 ## Ver a los estudiantes registrados en la consola
 

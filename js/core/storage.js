@@ -15,6 +15,7 @@
       version: VERSION,
       createdAt: Date.now(),
       profile: { name: '', avatar: '🦊', course: '9°' },
+      group: null,        // { code, name } grupo del estudiante (con cuentas en la nube)
       xp: 0,
       points: 0,
       awarded: {},        // claves de recompensas ya entregadas (evita dar XP dos veces)

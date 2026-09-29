@@ -82,7 +82,7 @@
   .app { padding-top: 16px; }
 
   .bottomnav {
-    display: grid; grid-template-columns: repeat(6, 1fr);
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
     height: var(--bottomnav-h);
     background: rgba(255, 255, 255, .96); backdrop-filter: blur(10px);
@@ -108,3 +108,8 @@
   body { background: #fff; }
   .app { padding: 0; max-width: none; }
 }
+
+/* El enlace al panel solo aparece para cuentas de docente */
+.teacher-only { display: none !important; }
+html.is-teacher .mainnav .teacher-only { display: inline-block !important; }
+@media (max-width: 760px) { html.is-teacher .bottomnav .teacher-only { display: flex !important; } }

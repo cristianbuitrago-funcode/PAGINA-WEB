@@ -32,6 +32,6 @@ window.O9.firebaseConfig = {
 */
 
 window.O9.cloudOptions = {
-  requireLogin: false, // true = los estudiantes deben registrarse o iniciar sesión para usar la plataforma
+  requireLogin: true,  // true = todos deben registrarse o iniciar sesión para usar la plataforma
   google: true         // mostrar el botón "Continuar con Google"
 };

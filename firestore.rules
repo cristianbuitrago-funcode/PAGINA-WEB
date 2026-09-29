@@ -2,29 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ¿Quien consulta es docente? (tiene un documento en docentes/{su correo}
-    // y su correo está verificado, por ejemplo al entrar con Google)
+    // Docente = tiene un documento en docentes/{su correo} y su correo está verificado (Google)
     function esDocente() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && exists(/databases/$(database)/documents/docentes/$(request.auth.token.email));
     }
 
-    // Progreso de cada estudiante: solo el dueño lo escribe;
-    // lo pueden leer el dueño y los docentes
+    // Progreso: cada uno escribe el suyo; los docentes pueden leer todos
     match /usuarios/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || esDocente());
       allow write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Lista de docentes: cada uno puede comprobar si está en ella.
-    // Se administra solo desde la consola de Firebase.
+    // Grupos: cualquiera puede comprobar un código (para registrarse con él),
+    // pero solo los docentes los listan, y cada docente administra los suyos
+    match /grupos/{code} {
+      allow get: if true;
+      allow list: if esDocente();
+      allow create: if esDocente()
+        && request.resource.data.teacherUid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60;
+      allow update: if esDocente()
+        && resource.data.teacherUid == request.auth.uid
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow delete: if esDocente() && resource.data.teacherUid == request.auth.uid;
+    }
+
+    // Lista de docentes: cada uno puede comprobar si está en ella (se administra desde la consola)
     match /docentes/{email} {
       allow read: if request.auth != null && request.auth.token.email == email;
       allow write: if false;
     }
 
-    // Todo lo demás está cerrado
     match /{document=**} {
       allow read, write: if false;
     }

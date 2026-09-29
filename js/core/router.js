@@ -34,8 +34,8 @@
     [/^proyectos$/, 'projects', 'retos', 'Proyectos finales'],
     [/^proyecto\/([\w-]+)$/, 'project', 'retos', 'Proyecto final'],
     [/^final$/, 'final', 'progreso', '¡Curso completado!'],
-    [/^cuenta$/, 'account', 'perfil', 'Mi cuenta'],
-    [/^docente(?:\/(demo))?$/, 'teacher', 'perfil', 'Panel del docente']
+    [/^cuenta(?:\/([A-Za-z0-9]{4,8}))?$/, 'account', 'perfil', 'Mi cuenta'],
+    [/^docente(?:\/(demo))?$/, 'teacher', 'docente', 'Panel del docente']
   ];
 
   function parse() {
@@ -57,9 +57,13 @@
 
     // Si el docente exige registro, sin sesión solo se puede ver la pantalla de cuenta
     const c = O9.cloud;
-    if (c && c.enabled && c.requireLogin && c.ready && !c.user && route.view !== 'account' && route.view !== 'teacher') {
-      location.replace('#/cuenta');
-      return;
+    if (c && c.enabled && c.ready) {
+      // Sin sesión: solo la pantalla de cuenta
+      if (c.requireLogin && !c.user && route.view !== 'account') { location.replace('#/cuenta'); return; }
+      // Estudiante sin grupo: debe escribir el código de su grupo
+      if (c.user && c.needsGroup && route.view !== 'account') { location.replace('#/cuenta'); return; }
+      // El panel es solo para docentes
+      if (route.view === 'teacher' && c.role !== 'teacher') { location.replace('#/'); return; }
     }
 
     // Marca la sección activa en ambos menús

@@ -11,6 +11,8 @@
   function render(root) {
     const s = O9.store.get();
     const info = O9.game.levelInfo();
+    const cloudUser = !!(O9.cloud.enabled && O9.cloud.user);
+    const teacher = cloudUser && O9.cloud.role === 'teacher';
 
     root.innerHTML = `
       <div class="breadcrumb"><a href="#/">Inicio</a> › <span>Perfil</span></div>
@@ -24,8 +26,8 @@
           </div>
           <div class="form-row"><label for="pfName">¿Cómo te llamas?</label>
             <input id="pfName" class="input" maxlength="40" value="${esc(s.profile.name)}" placeholder="Escribe tu nombre (aparecerá en tu certificado)"></div>
-          <div class="form-row"><label for="pfCourse">Curso</label>
-            <input id="pfCourse" class="input" maxlength="12" value="${esc(s.profile.course)}" placeholder="Ej. 9°B"></div>
+          ${cloudUser ? '' : `<div class="form-row"><label for="pfCourse">Curso</label>
+            <input id="pfCourse" class="input" maxlength="12" value="${esc(s.profile.course)}" placeholder="Ej. 9°B"></div>`}
           <div class="form-row"><label>Elige tu avatar</label>
             <div class="avatar-grid">${O9.data.avatars.map((a) => `<button class="avatar-opt ${a === s.profile.avatar ? 'on' : ''}" data-a="${a}" aria-label="Avatar ${a}">${a}</button>`).join('')}</div></div>
           <button class="btn btn-green" data-save>💾 Guardar perfil</button>
@@ -41,7 +43,9 @@
           ${O9.cloud.enabled ? `<div class="card">
             <h3>☁️ Cuenta</h3>
             ${O9.cloud.user
-              ? `<p class="muted" style="font-size:.92rem">Sesión iniciada como <b>${esc(O9.cloud.user.email || '')}</b>. Tu progreso se guarda en la nube.</p><a class="btn btn-sm btn-light" href="#/cuenta">Ver mi cuenta</a>`
+              ? `<p class="muted" style="font-size:.92rem">Sesión iniciada como <b>${esc(O9.cloud.user.email || '')}</b>. Tu progreso se guarda en la nube.</p>
+                 ${teacher ? '<p><span class="pill pill-gold">👩‍🏫 Cuenta de docente</span></p>' : `<p>👥 Grupo: <b>${esc((s.group || {}).name || 'sin grupo')}</b></p>`}
+                 <a class="btn btn-sm btn-light" href="#/cuenta">Ver mi cuenta</a>`
               : '<p class="muted" style="font-size:.92rem">Regístrate para guardar tu progreso en la nube.</p><a class="btn btn-sm" href="#/cuenta">Iniciar sesión o registrarme</a>'}
           </div>` : ''}
           <div class="card">
@@ -51,7 +55,7 @@
               : '⚠️ Este navegador no permite guardar datos (¿modo incógnito?). Descarga una copia de tu progreso para no perderlo.'}</p>
             <div class="row">
               <button class="btn btn-sm btn-light" data-export>⬇️ Descargar copia</button>
-              <label class="btn btn-sm btn-light" style="cursor:pointer">⬆️ Cargar copia<input type="file" accept=".json,application/json" data-import hidden></label>
+              ${cloudUser ? '' : '<label class="btn btn-sm btn-light" style="cursor:pointer">⬆️ Cargar copia<input type="file" accept=".json,application/json" data-import hidden></label>'}
             </div>
           </div>
           <div class="card">
@@ -59,16 +63,16 @@
             <p class="muted" style="font-size:.92rem">${s.diagnostic ? `Tu último resultado fue <b>${esc(s.diagnostic.band)}</b>.` : 'Aún no lo has hecho.'}</p>
             <a class="btn btn-sm btn-purple" href="#/diagnostico">${s.diagnostic ? 'Repetir diagnóstico' : 'Hacer diagnóstico'}</a>
           </div>
-          <div class="card">
-            <h3>👩‍🏫 ¿Eres docente?</h3>
-            <p class="muted" style="font-size:.92rem">Mira el avance de tus estudiantes registrados: progreso, temas difíciles y exportación a Excel.</p>
-            <a class="btn btn-sm btn-light" href="#/docente">Abrir panel del docente</a>
-          </div>
-          <div class="card" style="border-color:var(--red-100)">
+          ${teacher ? `<div class="card">
+            <h3>👩‍🏫 Panel del docente</h3>
+            <p class="muted" style="font-size:.92rem">Crea grupos, comparte sus códigos y mira el avance de tus estudiantes.</p>
+            <a class="btn btn-sm btn-gold" href="#/docente">Abrir panel del docente</a>
+          </div>` : ''}
+          ${cloudUser ? '' : `<div class="card" style="border-color:var(--red-100)">
             <h3>🗑️ Empezar de cero</h3>
             <p class="muted" style="font-size:.92rem">Borra todo tu progreso, XP e insignias. No se puede deshacer.</p>
             <button class="btn btn-sm btn-danger" data-reset>Reiniciar progreso</button>
-          </div>
+          </div>`}
         </section>
       </div>`;
     O9.ui.animateBars(root);
@@ -82,7 +86,8 @@
 
     $('[data-save]', root).onclick = () => {
       const name = $('#pfName', root).value.trim();
-      const course = $('#pfCourse', root).value.trim() || '9°';
+      const courseInput = $('#pfCourse', root);
+      const course = courseInput ? courseInput.value.trim() || '9°' : O9.store.get().profile.course;
       O9.store.update((st) => { st.profile.name = name; st.profile.avatar = avatar; st.profile.course = course; });
       O9.store.saveNow();
       $('[data-name-view]', root).textContent = name || 'Estudiante';
@@ -94,7 +99,8 @@
       O9.util.download(`ofimatica9_progreso_${name}.json`, O9.store.exportJSON());
     };
 
-    $('[data-import]', root).onchange = (e) => {
+    const imp = $('[data-import]', root);
+    if (imp) imp.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -111,7 +117,8 @@
       reader.readAsText(file);
     };
 
-    $('[data-reset]', root).onclick = async () => {
+    const rst = $('[data-reset]', root);
+    if (rst) rst.onclick = async () => {
       if (!(await O9.ui.confirm('¿Borrar todo tu progreso?', 'Perderás tu XP, insignias, retos y proyectos. Esta acción no se puede deshacer.', 'Sí, borrar todo'))) return;
       O9.store.reset();
       O9.ui.updateChip();
