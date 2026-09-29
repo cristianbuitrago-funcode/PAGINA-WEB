@@ -12,7 +12,14 @@
  */
 window.O9 = window.O9 || {};
 
-window.O9.firebaseConfig = null;
+window.O9.firebaseConfig = {
+  apiKey: "AIzaSyCU1-cQ-n5_v2oI4jjxVTaoB6X3SF0Nh-o",
+  authDomain: "ofimatica9-a1993.firebaseapp.com",
+  projectId: "ofimatica9-a1993",
+  storageBucket: "ofimatica9-a1993.firebasestorage.app",
+  messagingSenderId: "580901683915",
+  appId: "1:580901683915:web:4c09558d2d14a28c00d14e"
+};
 /* Ejemplo (reemplaza null por algo así):
 window.O9.firebaseConfig = {
   apiKey: "AIza...",
