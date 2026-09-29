@@ -185,6 +185,10 @@ Los estudiantes **no ven** el panel ni el enlace al panel. Si alguno escribe `#/
 2. En cada tarea ves cuántos entregaron y cuántos faltan por calificar. **🙈 Ocultar** la esconde de los estudiantes sin borrarla.
 3. **📥 Ver entregas y calificar**: lista de estudiantes del grupo con su estado (pendiente, entregada, tarde, calificada). Descargas sus archivos, escribes la **nota** y un **comentario**, y pulsas **Calificar**. **⬇️ Notas en CSV** baja la planilla para Excel.
 
+**Dos tipos de tarea:**
+- **🎮 Actividades de la plataforma:** asignas niveles de Word/Excel (o todo un módulo), retos y proyectos finales. **La nota se calcula sola** con el porcentaje completado: `nota = % completado × nota máxima`, aproximada **siempre hacia abajo** a un decimal (60% → 3,0 · 65% → 3,2 · 99% → 4,9). Si la tarea tiene fecha límite, solo cuenta lo completado antes del cierre. En **📊 Ver avance y notas** ves el porcentaje, la nota y lo que le falta a cada estudiante, y puedes descargar el CSV.
+- **📎 Entregar un archivo:** el estudiante sube su trabajo y tú lo calificas a mano (como se explica arriba).
+
 **Estudiante** (menú **📋 Tareas**; también sale un aviso en el inicio si tiene pendientes):
 1. Ve las instrucciones, la fecha límite y descarga el material.
 2. **📤 Entregar tarea**: sube hasta 5 archivos (máximo **3 MB** cada uno) con un comentario opcional.

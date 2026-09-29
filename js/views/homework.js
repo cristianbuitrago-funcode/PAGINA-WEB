@@ -46,14 +46,19 @@
     root.innerHTML = head + '<div class="empty"><div class="big">⏳</div><p>Cargando tus tareas...</p></div>';
 
     Promise.all([H().myTasks(), H().mySubmissions()]).then(([tasks, subs]) => {
-      const pending = tasks.filter((t) => !subs[t.id]);
-      const done = tasks.filter((t) => subs[t.id]);
+      const platform = tasks.filter((t) => t.kind === 'plataforma');
+      const fileTasks = tasks.filter((t) => t.kind !== 'plataforma');
+      const pending = fileTasks.filter((t) => !subs[t.id]);
+      const done = fileTasks.filter((t) => subs[t.id]);
       root.innerHTML = head + (tasks.length ? `
-        <div class="grid grid-3 section">
+        ${platform.length ? `<h2 class="section">🎮 Actividades de la plataforma</h2>
+          <p class="muted" style="margin-top:-6px">Tu nota se calcula sola según el porcentaje que completes. Siempre se aproxima hacia abajo.</p>
+          <div class="stack">${platform.map(platformCard).join('')}</div>` : ''}
+        ${fileTasks.length ? `<div class="grid grid-3 section">
           <div class="stat"><span class="stat-icon">📌</span><span class="stat-value">${pending.length}</span><span class="stat-label">Por entregar</span></div>
           <div class="stat"><span class="stat-icon">📤</span><span class="stat-value">${done.length}</span><span class="stat-label">Entregadas</span></div>
           <div class="stat"><span class="stat-icon">✅</span><span class="stat-value">${done.filter((t) => subs[t.id].grade != null).length}</span><span class="stat-label">Calificadas</span></div>
-        </div>
+        </div>` : ''}
         ${pending.length ? `<h2 class="section">📌 Por entregar</h2><div class="stack">${pending.map((t) => card(t, null)).join('')}</div>` : ''}
         ${done.length ? `<h2 class="section">📤 Entregadas</h2><div class="stack">${done.map((t) => card(t, subs[t.id])).join('')}</div>` : ''}`
         : '<div class="empty section"><div class="big">🎉</div><p>No tienes tareas asignadas por ahora.</p><a class="btn" href="#/">Seguir aprendiendo</a></div>');
@@ -65,6 +70,33 @@
     }).catch((e) => {
       root.innerHTML = head + `<div class="feedback bad section"><h4>No se pudieron cargar las tareas</h4><p>${esc(cloud.errorText(e))}</p></div>`;
     });
+  }
+
+  const num = (v) => Number(v).toFixed(1).replace('.', ',');
+
+  /** Tarjeta de una tarea de plataforma: avance, nota automática y lo que falta. */
+  function platformCard(t) {
+    const ev = O9.grading.evaluate(O9.store.get(), t);
+    const complete = ev.ratio >= 1;
+    const pill = complete ? '<span class="pill pill-green">✅ Completada</span>' : ev.closed ? '<span class="pill pill-red">🔒 Cerrada</span>' : '<span class="pill pill-gold">🎮 En progreso</span>';
+    return `<article class="card hw-card platform ${complete ? 'graded' : ev.closed ? 'late-missing' : 'pending'}">
+      <div class="row-between"><h3 style="margin:0">${esc(t.title)}</h3>${pill}</div>
+      <p class="muted" style="margin:4px 0 10px;font-weight:700;font-size:.9rem">🗓️ ${dueText(t)} · ${esc(O9.grading.scopeLabel(t.scope || {}))}</p>
+      ${t.description ? `<div class="hw-desc">${esc(t.description).replace(/\n/g, '<br>')}</div>` : ''}
+      ${t.files && t.files.length ? `<p style="margin:10px 0 4px;font-weight:800;font-size:.9rem">📥 Material</p>${fileList(t.files)}` : ''}
+      ${t.link ? `<p style="margin:10px 0 0"><a href="${esc(t.link)}" target="_blank" rel="noopener noreferrer">🔗 Abrir enlace del docente</a></p>` : ''}
+      <div class="auto-grade">
+        <div style="flex:1;min-width:200px">
+          <div class="progress-label"><span>${ev.done} de ${ev.total} actividades</span><span>${ev.pct}%</span></div>
+          ${O9.ui.bar(ev.pct, 'progress-lg')}
+          <small class="muted">${O9.grading.scaleExamples(t.maxGrade)}${ev.closed ? ' · Solo cuenta lo completado antes del cierre.' : ''}</small>
+        </div>
+        <div class="grade-box"><small>${ev.closed ? 'Nota final' : 'Nota actual'}</small><b>${num(ev.grade)}</b><small>de ${num(t.maxGrade || 5)}</small></div>
+      </div>
+      ${!complete && !ev.closed && ev.pending.length ? `<p style="margin:12px 0 6px;font-weight:800;font-size:.9rem">📌 Te falta (${ev.pending.length}):</p>
+        <div class="stack" style="gap:6px">${ev.pending.slice(0, 5).map((it) => `<a class="topic-link" href="${it.href}"><span class="topic-status">${it.icon}</span><span class="t-title">${esc(it.title)}</span><span class="t-meta">${esc(it.where)} · Ir ➜</span></a>`).join('')}
+        ${ev.pending.length > 5 ? `<p class="muted" style="margin:4px 0 0;font-size:.85rem">...y ${ev.pending.length - 5} más.</p>` : ''}</div>` : ''}
+    </article>`;
   }
 
   function card(t, sub) {

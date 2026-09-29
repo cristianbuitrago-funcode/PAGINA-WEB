@@ -240,3 +240,16 @@ button.file-chip:hover { border-color: var(--blue); background: var(--blue-50); 
 .faq[open] summary::after { content: "－"; }
 .faq p { margin: 10px 0 0; }
 .faq { padding: 14px 16px; }
+.auto-grade { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--blue-50); }
+.grade-box { display: flex; flex-direction: column; align-items: center; min-width: 96px; padding: 8px 14px; border-radius: 14px; background: #fff; box-shadow: var(--shadow-sm); }
+.grade-box b { font-size: 2rem; line-height: 1.1; color: var(--purple); }
+.grade-box small { color: var(--muted); font-weight: 700; font-size: .75rem; }
+[hidden] { display: none !important; }
+.type-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.type-pick label { display: flex; gap: 10px; align-items: flex-start; border: 2px solid var(--line); border-radius: 14px; padding: 12px; cursor: pointer; background: #fff; }
+.type-pick label:has(input:checked) { border-color: var(--purple); background: var(--purple-50); }
+.type-pick input { margin-top: 4px; }
+.type-pick small { display: block; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.scope-box { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fbfcff; display: grid; gap: 6px; }
+.scope-box label { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: .9rem; cursor: pointer; }
+.hw-card.platform { border-left: 5px solid var(--blue); }

@@ -3,7 +3,8 @@
  *
  * Colecciones:
  *  - tareas/{id}      → { groupCode, groupName, teacherUid, teacherName, title, description,
- *                         due (ms), maxGrade, link, files:[{id,name,size,type}], active, createdAt }
+ *                         due (ms), maxGrade, link, files:[{id,name,size,type}], active, createdAt,
+ *                         kind: 'archivo'|'plataforma', scope (actividades asignadas, ver grading.js) }
  *  - entregas/{tareaId_uid} → { taskId, groupCode, uid, studentName, email, files:[...], comment,
  *                         submittedAt (ms), grade, feedback, gradedAt, status }
  *  - archivos/{id}    → { name, type, size, parts, kind:'task'|'submission', ownerUid, taskId, groupCode }
@@ -139,7 +140,9 @@
       const task = {
         groupCode: t.groupCode, groupName: t.groupName, teacherUid: uid(), teacherName: O9.cloud.user.displayName || '',
         title: t.title, description: t.description || '', due: t.due || null, maxGrade: t.maxGrade || 5,
-        link: t.link || '', files: uploaded, active: true, createdAt: Date.now()
+        link: t.link || '', files: uploaded, active: true, createdAt: Date.now(),
+        kind: t.kind || 'archivo',          // 'archivo' = se entrega un archivo · 'plataforma' = actividades de la plataforma
+        scope: t.scope || null              // solo para 'plataforma' (ver core/grading.js)
       };
       await db().collection('tareas').doc(id).set(task);
       return Object.assign({ id }, task);
@@ -193,7 +196,8 @@
     /** Tareas pendientes (para el aviso del inicio). */
     async pendingCount() {
       const [tasks, subs] = await Promise.all([O9.homework.myTasks(), O9.homework.mySubmissions()]);
-      return tasks.filter((t) => !subs[t.id]).length;
+      const state = O9.store.get();
+      return tasks.filter((t) => (t.kind === 'plataforma' ? O9.grading.evaluate(state, t).ratio < 1 && !(t.due && Date.now() > t.due) : !subs[t.id])).length;
     }
   };
 })(window.O9);
