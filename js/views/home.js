@@ -114,13 +114,27 @@
       </section>
 
       <section class="section">
-        <div class="grid grid-3">
+        <div class="grid grid-4">
           ${quick('#/laboratorio', '🧪', 'Laboratorio', 'Practica libre en el mini Word y el mini Excel, con misiones.')}
           ${quick('#/retos', '⚔️', 'Retos', 'Desafíos para ganar XP, puntos e insignias.')}
           ${quick('#/proyectos', '🏆', 'Proyectos finales', 'Un informe en Word y un sistema de notas en Excel.')}
+          ${quick('#/ayuda', '❓', 'Ayuda', 'Preguntas frecuentes sobre la plataforma y las tareas.')}
         </div>
       </section>`;
     O9.ui.animateBars(root);
+
+    // Aviso de tareas pendientes (solo estudiantes con sesión)
+    const c = O9.cloud;
+    if (c.enabled && c.user && c.role === 'student' && O9.homework) {
+      O9.homework.pendingCount().then((n) => {
+        if (!n || !document.body.contains(root)) return;
+        const hero = root.querySelector('.hero');
+        if (!hero) return;
+        hero.insertAdjacentHTML('afterend', `<section class="section"><a class="banner" href="#/tareas" style="text-decoration:none;color:inherit;border-color:var(--purple-100);background:linear-gradient(90deg,var(--purple-50),#fff)">
+          <span class="b-ico">📋</span><div class="b-text"><b>Tienes ${n} tarea${n === 1 ? '' : 's'} por entregar</b><span class="muted">Revisa las instrucciones, descarga el material y entrega tus archivos.</span></div>
+          <span class="btn btn-purple">Ver mis tareas</span></a></section>`);
+      }).catch(() => {});
+    }
   }
 
   const stat = (icon, value, label) => `<div class="stat"><span class="stat-icon">${icon}</span><span class="stat-value">${value}</span><span class="stat-label">${esc(label)}</span></div>`;

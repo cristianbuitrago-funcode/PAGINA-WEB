@@ -130,6 +130,7 @@
         s.activity.unshift({ icon, text, at: Date.now() });
         s.activity = s.activity.slice(0, 30);
       });
+      O9.util.emit('progress:milestone'); // logro importante → se guarda pronto en la nube
     },
 
     setLastRoute(route) {

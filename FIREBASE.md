@@ -38,7 +38,9 @@ La plataforma ya trae todo el código. Tú solo tienes que crear el proyecto y p
 1. Menú izquierdo: **Compilación → Firestore Database** → **Crear base de datos**.
 2. Ubicación: elige una cercana, por ejemplo `southamerica-east1` (São Paulo) o `nam5` (EE. UU.). **No se puede cambiar después.**
 3. Elige **Iniciar en modo de producción** → **Crear**.
-4. Abre la pestaña **Reglas**, borra lo que hay y pega esto, que es el contenido del archivo `firestore.rules`:
+4. Abre la pestaña **Reglas**, borra lo que hay y pega **todo el contenido del archivo [`firestore.rules`](firestore.rules)** del repositorio. En GitHub, abre el archivo y usa el botón **Copy raw file** (📋) para copiarlo completo.
+
+   Así empiezan las reglas (el archivo completo incluye además `tareas`, `entregas` y `archivos`):
 
    ```
    rules_version = '2';
@@ -175,6 +177,29 @@ La plataforma está configurada con `requireLogin: true`: **nadie puede usarla s
 Los estudiantes **no ven** el panel ni el enlace al panel. Si alguno escribe `#/docente`, la página lo devuelve al inicio, y además las reglas de Firestore le impiden leer datos de otros.
 
 > Cuentas creadas **antes** de los grupos: la próxima vez que entren se les pedirá el código de su grupo.
+
+## Tareas, entregas y calificaciones 📋
+
+**Docente** (Panel → pestaña **📋 Tareas y calificaciones**):
+1. **➕ Nueva tarea**: elige uno o varios grupos, escribe título e instrucciones, fecha y hora límite, nota máxima (por defecto 5,0), un enlace opcional y **archivos** para los estudiantes (guías, plantillas).
+2. En cada tarea ves cuántos entregaron y cuántos faltan por calificar. **🙈 Ocultar** la esconde de los estudiantes sin borrarla.
+3. **📥 Ver entregas y calificar**: lista de estudiantes del grupo con su estado (pendiente, entregada, tarde, calificada). Descargas sus archivos, escribes la **nota** y un **comentario**, y pulsas **Calificar**. **⬇️ Notas en CSV** baja la planilla para Excel.
+
+**Estudiante** (menú **📋 Tareas**; también sale un aviso en el inicio si tiene pendientes):
+1. Ve las instrucciones, la fecha límite y descarga el material.
+2. **📤 Entregar tarea**: sube hasta 5 archivos (máximo **3 MB** cada uno) con un comentario opcional.
+3. Puede **cambiar su entrega** mientras no esté calificada. Cuando el docente califica, ve la nota y el comentario.
+
+**¿Dónde se guardan los archivos?** En Firestore, divididos en partes. Así funciona con el **plan gratuito**: Firebase Storage exige el plan de pago en los proyectos nuevos. El plan gratuito incluye **1 GB** de almacenamiento: alcanza para cientos de entregas de Word/Excel. Si se llena, borra tareas de periodos anteriores (al eliminar una tarea se borran sus archivos y entregas).
+
+**Reglas:** estudiantes y docentes solo ven lo que les corresponde. Un estudiante no puede ver las entregas de otros, ni ponerse nota, ni cambiar su entrega después de calificada.
+
+## Privacidad y ayuda
+
+- Al registrarse, el estudiante debe aceptar el **aviso de privacidad** (`#/privacidad`) y confirmar que tiene **autorización de su acudiente** (Ley 1581 de 2012). Las cuentas antiguas lo aceptan la próxima vez que entren.
+- Escribe el nombre del colegio y el correo de contacto en `js/core/firebase-config.js` (`institucion` y `contactoPrivacidad`) para que aparezcan en el aviso.
+- `#/ayuda` tiene preguntas frecuentes para estudiantes. Las dos páginas se ven sin iniciar sesión.
+- **Guardado optimizado:** el progreso se sube a la nube como máximo una vez por minuto, al completar un logro y al cerrar la pestaña. Así un colegio completo cabe en el límite gratuito de 20.000 escrituras diarias.
 
 ## Ver a los estudiantes registrados en la consola
 

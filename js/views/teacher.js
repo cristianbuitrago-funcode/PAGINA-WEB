@@ -118,6 +118,7 @@
     const codes = () => new Set(groups.map((g) => g.code));
     const mine = () => allStudents.filter((s) => codes().has(s.groupCode));
     let group = '', query = '', sortKey = 'name', sortDir = 1;
+    let tab = sessionStorage.getItem('o9-teacher-tab') === 'tasks' ? 'tasks' : 'students';
 
     const filtered = () => mine()
       .filter((s) => !group || s.groupCode === group)
@@ -130,9 +131,30 @@
     root.innerHTML = head(`<div class="row">
         ${demo ? '<span class="pill pill-gold">🧪 Demostración: datos inventados</span>' : '<button class="btn btn-sm btn-light" data-reload>🔄 Actualizar</button>'}
         <button class="btn btn-sm btn-green" data-csv>⬇️ Descargar CSV</button></div>`) + `
-      <section class="card section" data-groups></section>
-      <div class="row section" style="margin-top:16px" data-filters></div>
-      <div data-body></div>`;
+      <div class="tabs section" style="margin-top:16px">
+        <button class="tab-btn ${tab === 'students' ? 'on' : ''}" data-tab="students">👥 Grupos y estudiantes</button>
+        <button class="tab-btn ${tab === 'tasks' ? 'on' : ''}" data-tab="tasks">📋 Tareas y calificaciones</button>
+      </div>
+      <div data-pane="students" ${tab === 'students' ? '' : 'hidden'}>
+        <section class="card" data-groups></section>
+        <div class="row section" style="margin-top:16px" data-filters></div>
+        <div data-body></div>
+      </div>
+      <div data-pane="tasks" ${tab === 'tasks' ? '' : 'hidden'}></div>`;
+
+    $$('[data-tab]', root).forEach((b) => (b.onclick = () => {
+      tab = b.dataset.tab;
+      try { sessionStorage.setItem('o9-teacher-tab', tab); } catch (e) { /* */ }
+      $$('[data-tab]', root).forEach((x) => x.classList.toggle('on', x === b));
+      $$('[data-pane]', root).forEach((p) => (p.hidden = p.dataset.pane !== tab));
+      if (tab === 'tasks') showTasks();
+    }));
+    function showTasks() {
+      const pane = $('[data-pane="tasks"]', root);
+      if (demo) { pane.innerHTML = '<div class="empty"><div class="big">📋</div><p>Las tareas no están disponibles en la demostración. Entra con tu cuenta de docente para crearlas.</p></div>'; return; }
+      O9.teacherTasks.render(pane, groups, mine());
+    }
+    if (tab === 'tasks') setTimeout(showTasks, 0);
 
     const body = $('[data-body]', root);
     const reload = $('[data-reload]', root);

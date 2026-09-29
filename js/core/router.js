@@ -13,7 +13,9 @@
  *  #/proyectos  #/proyecto/:id   Proyectos finales
  *  #/final               Certificado de curso completo
  *  #/cuenta              Registro / inicio de sesión (Firebase)
- *  #/docente[/demo]      Panel del docente (avance de los estudiantes)
+ *  #/docente[/demo]      Panel del docente (grupos, estudiantes, tareas y calificaciones)
+ *  #/tareas              Tareas del estudiante (descargar material y entregar archivos)
+ *  #/privacidad  #/ayuda Aviso de privacidad y preguntas frecuentes (sin iniciar sesión)
  */
 (function (O9) {
   'use strict';
@@ -35,7 +37,10 @@
     [/^proyecto\/([\w-]+)$/, 'project', 'retos', 'Proyecto final'],
     [/^final$/, 'final', 'progreso', '¡Curso completado!'],
     [/^cuenta(?:\/([A-Za-z0-9]{4,8}))?$/, 'account', 'perfil', 'Mi cuenta'],
-    [/^docente(?:\/(demo))?$/, 'teacher', 'docente', 'Panel del docente']
+    [/^docente(?:\/(demo))?$/, 'teacher', 'docente', 'Panel del docente'],
+    [/^tareas$/, 'homework', 'tareas', 'Mis tareas'],
+    [/^privacidad$/, 'privacy', 'perfil', 'Aviso de privacidad'],
+    [/^ayuda$/, 'help', 'perfil', 'Ayuda']
   ];
 
   function parse() {
@@ -57,11 +62,14 @@
 
     // Si el docente exige registro, sin sesión solo se puede ver la pantalla de cuenta
     const c = O9.cloud;
+    const open = ['account', 'privacy', 'help'].includes(route.view); // se ven sin sesión
     if (c && c.enabled && c.ready) {
-      // Sin sesión: solo la pantalla de cuenta
-      if (c.requireLogin && !c.user && route.view !== 'account') { location.replace('#/cuenta'); return; }
-      // Estudiante sin grupo: debe escribir el código de su grupo
-      if (c.user && c.needsGroup && route.view !== 'account') { location.replace('#/cuenta'); return; }
+      // Sin sesión: solo cuenta, privacidad y ayuda
+      if (c.requireLogin && !c.user && !open) { location.replace('#/cuenta'); return; }
+      // Estudiante sin grupo o sin aceptar el aviso de privacidad
+      if (c.user && (c.needsGroup || c.needsConsent) && !open) { location.replace('#/cuenta'); return; }
+      // Las tareas del estudiante no aplican al docente (él las ve en su panel)
+      if (route.view === 'homework' && c.role === 'teacher') { location.replace('#/docente'); return; }
       // El panel es solo para docentes
       if (route.view === 'teacher' && c.role !== 'teacher') { location.replace('#/'); return; }
     }

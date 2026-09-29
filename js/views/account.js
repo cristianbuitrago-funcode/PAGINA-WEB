@@ -12,6 +12,8 @@
   const codeInput = (id, value) => `<input id="${id}" class="input mono" required maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false"
     placeholder="Ej. K7P2QX" value="${esc(value || '')}" style="text-transform:uppercase;letter-spacing:.2em;font-weight:900;font-size:1.2rem;text-align:center">`;
 
+  const consentBox = (id) => `<label class="consent"><input type="checkbox" id="${id}"> <span>He leído el <a href="#/privacidad" target="_blank">aviso de privacidad</a> y cuento con la <b>autorización de mi padre, madre o acudiente</b> para usar la plataforma.</span></label>`;
+
   function wrap(root, inner) {
     root.innerHTML = `<div class="diag-wrap"><div class="center" style="margin:6px 0 14px">
       <div class="brand-logo" style="width:56px;height:56px;font-size:1.4rem;margin:0 auto 8px;border-radius:16px">9°</div>
@@ -33,7 +35,7 @@
       setTimeout(() => O9.router.refresh(), 600);
       return;
     }
-    if (cloud.user && cloud.needsGroup) return renderJoin(root, urlCode);
+    if (cloud.user && (cloud.needsGroup || cloud.needsConsent)) return renderJoin(root, urlCode);
     if (cloud.user) return renderAccount(root, urlCode);
     renderAuth(root, urlCode);
   }
@@ -56,7 +58,7 @@
               <div class="form-row"><label for="acName">Nombre completo</label><input id="acName" class="input" required maxlength="40" autocomplete="name" placeholder="Nombres y apellidos"></div>` : ''}
             <div class="form-row"><label for="acEmail">Correo</label><input id="acEmail" class="input" type="email" required autocomplete="email" placeholder="tucorreo@ejemplo.com"></div>
             <div class="form-row"><label for="acPass">Contraseña</label><input id="acPass" class="input" type="password" required minlength="6" autocomplete="${mode === 'login' ? 'current-password' : 'new-password'}" placeholder="${mode === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres'}"></div>
-            ${mode === 'register' ? '<div class="form-row"><label for="acPass2">Repite la contraseña</label><input id="acPass2" class="input" type="password" required autocomplete="new-password"></div>' : ''}
+            ${mode === 'register' ? '<div class="form-row"><label for="acPass2">Repite la contraseña</label><input id="acPass2" class="input" type="password" required autocomplete="new-password"></div>' + consentBox('acConsent') : ''}
             <div data-msg></div>
             <button class="btn btn-block btn-lg ${mode === 'login' ? '' : 'btn-green'}" type="submit">${mode === 'login' ? 'Entrar' : 'Crear mi cuenta'}</button>
           </form>
@@ -65,7 +67,8 @@
             ${mode === 'register' ? '<p class="muted center" style="font-size:.82rem;margin-top:8px">Con Google te pediremos el código del grupo después de entrar.</p>' : ''}` : ''}
           ${mode === 'login' ? '<div class="center" style="margin-top:12px"><button class="btn btn-ghost btn-sm" data-forgot>¿Olvidaste tu contraseña?</button></div>' : ''}
         </section>
-        <p class="muted center" style="font-size:.85rem;margin-top:14px">👩‍🏫 ¿Eres docente? Entra con <b>Continuar con Google</b> usando el correo registrado como docente.</p>`);
+        <p class="muted center" style="font-size:.85rem;margin-top:14px">👩‍🏫 ¿Eres docente? Entra con <b>Continuar con Google</b> usando el correo registrado como docente.</p>
+        <p class="center" style="font-size:.85rem"><a href="#/ayuda">❓ Ayuda</a> · <a href="#/privacidad">🔒 Aviso de privacidad</a></p>`);
 
       const msg = $('[data-msg]', root);
       const show = (text, type = 'bad') => { msg.innerHTML = `<div class="feedback ${type}" style="margin:0 0 12px">${text}</div>`; };
@@ -83,6 +86,7 @@
             if (!cloud.normCode(code)) return show('Escribe el código de tu grupo. Te lo da tu docente.');
             if (name.split(/\s+/).length < 2) return show('Escribe tu nombre completo (nombres y apellidos): así te reconoce tu docente.');
             if (pass !== $('#acPass2', root).value) return show('Las contraseñas no coinciden.');
+            if (!$('#acConsent', root).checked) return show('Para crear tu cuenta debes aceptar el aviso de privacidad y contar con la autorización de tu acudiente.');
             busy(true);
             await cloud.register({ name, email, password: pass, code });
             O9.ui.toast(`¡Bienvenido, ${esc(name.split(' ')[0])}! Ya estás en tu grupo.`, 'success', '🎉');
@@ -139,13 +143,39 @@
 
   function renderJoin(root, urlCode) {
     const cloud = O9.cloud;
+    const needG = cloud.needsGroup, needC = cloud.needsConsent;
     wrap(root, `<section class="card" style="padding:24px">
-      <div class="center"><div style="font-size:3rem">👥</div><h1 style="margin-bottom:4px">Únete a tu grupo</h1>
-      <p class="muted">Hola, <b>${esc(O9.store.get().profile.name || cloud.user.displayName || cloud.user.email)}</b>. Para empezar, escribe el código que te dio tu docente.</p></div>
-      ${joinForm('jCode', urlCode, 'Entrar al grupo')}
+      <div class="center"><div style="font-size:3rem">${needG ? '👥' : '🔒'}</div><h1 style="margin-bottom:4px">${needG ? 'Únete a tu grupo' : 'Un último paso'}</h1>
+      <p class="muted">Hola, <b>${esc(O9.store.get().profile.name || cloud.user.displayName || cloud.user.email)}</b>. ${needG ? 'Para empezar, escribe el código que te dio tu docente.' : 'Antes de continuar, lee y acepta el aviso de privacidad.'}</p></div>
+      <form data-join novalidate>
+        ${needG ? `<div class="form-row"><label for="jCode">Código del grupo</label>${codeInput('jCode', urlCode)}</div>` : ''}
+        ${needC ? consentBox('jConsent') : ''}
+        <div data-jmsg></div>
+        <button class="btn btn-green btn-block btn-lg" type="submit">${needG ? 'Entrar al grupo' : 'Aceptar y continuar'}</button>
+      </form>
       <div class="center" style="margin-top:12px"><button class="btn btn-ghost btn-sm" data-logout>Usar otra cuenta</button></div>
     </section>`);
-    bindJoin(root, 'jCode', () => (location.hash = '#/'));
+    const form = $('[data-join]', root);
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const msg = (t) => { $('[data-jmsg]', form).innerHTML = `<div class="feedback bad" style="margin:0 0 12px">${t}</div>`; };
+      if (needC && !$('#jConsent', root).checked) return msg('Debes aceptar el aviso de privacidad para continuar.');
+      const btn = $('button[type=submit]', form);
+      btn.disabled = true;
+      try {
+        if (needG) await cloud.findGroup($('#jCode', root).value); // valida antes de guardar nada
+        if (needC) await cloud.acceptConsent();
+        if (needG) {
+          const g = await cloud.joinGroup($('#jCode', root).value);
+          O9.ui.toast(`Ahora estás en el grupo <b>${esc(g.name)}</b>`, 'success', '👥');
+        }
+        location.hash = '#/';
+        O9.router.refresh();
+      } catch (err) {
+        btn.disabled = false;
+        msg(esc(cloud.errorText(err)));
+      }
+    };
     $('[data-logout]', root).onclick = async () => { await cloud.logout(); O9.router.refresh(); };
   }
 

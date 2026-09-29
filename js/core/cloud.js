@@ -85,7 +85,8 @@
       courseComplete: !!state.courseComplete,
       projectWord: !!(state.projects.word || {}).done,
       projectExcel: !!(state.projects.excel || {}).done,
-      diagnostic: state.diagnostic ? state.diagnostic.band : ''
+      diagnostic: state.diagnostic ? state.diagnostic.band : '',
+      consent: !!state.consent
     };
   }
 
@@ -109,7 +110,26 @@
       O9.util.emit('cloud:changed');
     }
   }
-  const pushSoon = O9.util.debounce(push, 2500);
+  /*
+   * Guardado optimizado (para no pasar el límite gratuito de escrituras):
+   * - Los cambios normales se agrupan y se suben como máximo una vez por minuto.
+   * - Los logros (tema completado, reto, proyecto) se suben a los pocos segundos.
+   * - Al cerrar o esconder la pestaña se sube lo pendiente.
+   */
+  const SYNC_MS = 60000;
+  let timer = null;
+  let dirty = false;
+  function schedulePush(delay) {
+    dirty = true;
+    if (timer && delay >= SYNC_MS) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => { timer = null; if (dirty) { dirty = false; push(); } }, delay);
+  }
+  function flush() {
+    if (!dirty || !cloud.user) return;
+    clearTimeout(timer); timer = null; dirty = false;
+    push();
+  }
 
   /**
    * Al iniciar sesión decide qué progreso conservar:
@@ -137,6 +157,7 @@
       if (pendingGroup) s.group = pendingGroup;
       // el grupo guardado en la nube manda sobre el local
       if (remote && remote.group && !pendingGroup) s.group = remote.group;
+      if (remote && remote.consent && !s.consent) s.consent = remote.consent;
     });
     pendingGroup = null;
   }
@@ -152,7 +173,9 @@
     }
     cloud.role = teacher ? 'teacher' : 'student';
     cloud.needsGroup = !teacher && !(O9.store.get().group || {}).code;
+    cloud.needsConsent = !teacher && !O9.store.get().consent;
     document.documentElement.classList.toggle('is-teacher', teacher);
+    document.documentElement.classList.toggle('is-student', !teacher);
   }
 
   function randomCode() {
@@ -170,6 +193,9 @@
     user: null,
     role: null,         // 'teacher' | 'student'
     needsGroup: false,  // estudiante con sesión pero sin grupo
+    needsConsent: false, // estudiante que aún no acepta el aviso de privacidad
+    PRIVACY_VERSION: 1,
+    db: () => db,
     ready: false,
     error: null,
     lastSync: () => lastSync,
@@ -194,14 +220,18 @@
         cloud.ready = true;
         return;
       }
-      O9.util.on('state:changed', () => { if (cloud.user) pushSoon(); });
+      O9.util.on('state:changed', () => { if (cloud.user) schedulePush(SYNC_MS); });
+      O9.util.on('progress:milestone', () => { if (cloud.user) schedulePush(3000); });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+      window.addEventListener('pagehide', flush);
       await new Promise((resolve) => {
         auth.onAuthStateChanged(async (user) => {
           const first = !cloud.ready;
           cloud.user = user;
           cloud.role = null;
           cloud.needsGroup = false;
-          document.documentElement.classList.remove('is-teacher');
+          cloud.needsConsent = false;
+          document.documentElement.classList.remove('is-teacher', 'is-student');
           if (user) {
             await pull(user);
             await detectRole(user);
@@ -239,13 +269,20 @@
       return g;
     },
 
+    /** El estudiante acepta el aviso de privacidad. */
+    async acceptConsent() {
+      O9.store.update((s) => { s.consent = { version: cloud.PRIVACY_VERSION, date: Date.now() }; });
+      cloud.needsConsent = false;
+      await push();
+    },
+
     /* ---------- Cuentas ---------- */
 
     /** Registro de estudiante: el código de grupo es obligatorio y se valida primero. */
     async register({ name, email, password, code }) {
       const g = await cloud.findGroup(code);
       pendingGroup = g;
-      O9.store.update((s) => { s.profile.name = name; s.group = g; });
+      O9.store.update((s) => { s.profile.name = name; s.group = g; s.consent = { version: cloud.PRIVACY_VERSION, date: Date.now() }; });
       try {
         const cred = await auth.createUserWithEmailAndPassword(email.trim(), password);
         await cred.user.updateProfile({ displayName: name });
@@ -262,6 +299,7 @@
 
     /** Cierra sesión y limpia este navegador (importante en computadores compartidos del colegio). */
     async logout() {
+      clearTimeout(timer); timer = null; dirty = false;
       await push();
       await auth.signOut();
       O9.store.reset();

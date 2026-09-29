@@ -55,6 +55,8 @@
               : '⚠️ Este navegador no permite guardar datos (¿modo incógnito?). Descarga una copia de tu progreso para no perderlo.'}</p>
             <div class="row">
               <button class="btn btn-sm btn-light" data-export>⬇️ Descargar copia</button>
+              <a class="btn btn-sm btn-light" href="#/ayuda">❓ Ayuda</a>
+              <a class="btn btn-sm btn-light" href="#/privacidad">🔒 Privacidad</a>
               ${cloudUser ? '' : '<label class="btn btn-sm btn-light" style="cursor:pointer">⬆️ Cargar copia<input type="file" accept=".json,application/json" data-import hidden></label>'}
             </div>
           </div>

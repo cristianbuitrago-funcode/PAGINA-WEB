@@ -33,5 +33,8 @@ window.O9.firebaseConfig = {
 
 window.O9.cloudOptions = {
   requireLogin: true,  // true = todos deben registrarse o iniciar sesión para usar la plataforma
-  google: true         // mostrar el botón "Continuar con Google"
+  google: true,        // mostrar el botón "Continuar con Google"
+  // Datos que aparecen en el aviso de privacidad (#/privacidad)
+  institucion: '',        // ej. 'la Institución Educativa San José'
+  contactoPrivacidad: ''  // correo para solicitudes sobre datos, ej. 'coordinacion@colegio.edu.co'
 };

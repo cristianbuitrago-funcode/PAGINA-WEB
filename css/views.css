@@ -207,3 +207,36 @@ a.card.quick, .quick { display: flex; gap: 12px; align-items: center; }
 .t-table td { white-space: normal; vertical-align: middle; }
 .t-table tbody tr { cursor: pointer; transition: background .15s; }
 .t-table tbody tr:hover, .t-table tbody tr:focus { background: var(--blue-50); outline: none; }
+
+/* ---------- Tareas ---------- */
+.hw-card h3 { font-size: 1.1rem; }
+.hw-card.pending, .hw-card.late-missing { border-left: 5px solid var(--gold); }
+.hw-card.late-missing { border-left-color: var(--red); }
+.hw-card.graded { border-left: 5px solid var(--green-500); }
+.hw-desc { background: #f8fafc; border-radius: 12px; padding: 12px 14px; font-size: .95rem; }
+.hw-sub { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.file-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.file-chip {
+  display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
+  border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 12px; font-weight: 700; font-size: .88rem; color: var(--ink);
+}
+button.file-chip:hover { border-color: var(--blue); background: var(--blue-50); }
+.file-chip .fc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.file-chip small { color: var(--muted); }
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; cursor: pointer;
+  border: 2px dashed var(--line-2); border-radius: 14px; padding: 18px; background: #fbfcff; transition: border-color .2s, background .2s;
+}
+.dropzone:hover { border-color: var(--purple); background: var(--purple-50); }
+.grade-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--purple-50); }
+.grade-row label { display: grid; gap: 4px; font-weight: 800; font-size: .82rem; }
+.grade-row input[type=number] { width: 110px; min-width: 0; }
+.consent { display: flex; gap: 10px; align-items: flex-start; text-align: left; font-size: .9rem; background: var(--blue-50); border-radius: 12px; padding: 12px; margin-bottom: 14px; cursor: pointer; }
+.consent input { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+.info-text h3 { margin-top: 18px; color: var(--purple); }
+.info-text ul { padding-left: 20px; }
+.faq summary { cursor: pointer; font-weight: 800; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+.faq summary::after { content: "＋"; color: var(--purple); }
+.faq[open] summary::after { content: "－"; }
+.faq p { margin: 10px 0 0; }
+.faq { padding: 14px 16px; }

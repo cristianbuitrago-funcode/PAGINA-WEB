@@ -8,15 +8,19 @@ service cloud.firestore {
         && request.auth.token.email_verified == true
         && exists(/databases/$(database)/documents/docentes/$(request.auth.token.email));
     }
+    function sesion() { return request.auth != null; }
+    // Grupo del estudiante que hace la consulta
+    function miGrupo() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.groupCode;
+    }
 
     // Progreso: cada uno escribe el suyo; los docentes pueden leer todos
     match /usuarios/{uid} {
-      allow read: if request.auth != null && (request.auth.uid == uid || esDocente());
-      allow write: if request.auth != null && request.auth.uid == uid;
+      allow read: if sesion() && (request.auth.uid == uid || esDocente());
+      allow write: if sesion() && request.auth.uid == uid;
     }
 
-    // Grupos: cualquiera puede comprobar un código (para registrarse con él),
-    // pero solo los docentes los listan, y cada docente administra los suyos
+    // Grupos: cualquiera comprueba un código; cada docente administra los suyos
     match /grupos/{code} {
       allow get: if true;
       allow list: if esDocente();
@@ -31,9 +35,61 @@ service cloud.firestore {
       allow delete: if esDocente() && resource.data.teacherUid == request.auth.uid;
     }
 
-    // Lista de docentes: cada uno puede comprobar si está en ella (se administra desde la consola)
+    // Tareas: las ven los docentes y los estudiantes del grupo; las crea/edita su docente
+    match /tareas/{id} {
+      allow read: if sesion() && (esDocente() || resource.data.groupCode == miGrupo());
+      allow create: if esDocente() && request.resource.data.teacherUid == request.auth.uid;
+      allow update, delete: if esDocente() && resource.data.teacherUid == request.auth.uid;
+    }
+
+    // Entregas: el estudiante crea/cambia la suya (sin tocar la nota) hasta que la califiquen;
+    // el docente la lee y solo puede escribir la nota y el comentario
+    match /entregas/{id} {
+      allow read: if sesion() && (esDocente() || resource.data.uid == request.auth.uid);
+      allow create: if sesion()
+        && request.resource.data.uid == request.auth.uid
+        && id == request.resource.data.taskId + '_' + request.auth.uid
+        && !('grade' in request.resource.data);
+      allow update: if sesion() && (
+          (resource.data.uid == request.auth.uid
+            && !('grade' in resource.data)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['files', 'comment', 'submittedAt', 'status', 'studentName', 'email']))
+          || (esDocente()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['grade', 'feedback', 'gradedAt', 'status']))
+        );
+      allow delete: if esDocente();
+    }
+
+    // Archivos (guardados en partes): material de tareas y entregas de estudiantes
+    function puedeVerArchivo(a) {
+      return sesion() && (
+        esDocente()
+        || a.ownerUid == request.auth.uid
+        || (a.kind == 'task' && a.groupCode == miGrupo())
+      );
+    }
+    match /archivos/{fid} {
+      allow read: if puedeVerArchivo(resource.data);
+      allow create: if sesion()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data['size'] <= 3200000
+        && (request.resource.data.kind == 'submission' || esDocente());
+      allow delete: if sesion() && (resource.data.ownerUid == request.auth.uid || esDocente());
+
+      match /partes/{p} {
+        allow read: if puedeVerArchivo(get(/databases/$(database)/documents/archivos/$(fid)).data);
+        allow create: if sesion()
+          && get(/databases/$(database)/documents/archivos/$(fid)).data.ownerUid == request.auth.uid;
+        allow delete: if sesion()
+          && (get(/databases/$(database)/documents/archivos/$(fid)).data.ownerUid == request.auth.uid || esDocente());
+      }
+    }
+
+    // Lista de docentes: cada uno comprueba si está en ella (se administra desde la consola)
     match /docentes/{email} {
-      allow read: if request.auth != null && request.auth.token.email == email;
+      allow read: if sesion() && request.auth.token.email == email;
       allow write: if false;
     }
 

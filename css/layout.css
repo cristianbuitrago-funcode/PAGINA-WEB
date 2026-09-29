@@ -113,3 +113,9 @@
 .teacher-only { display: none !important; }
 html.is-teacher .mainnav .teacher-only { display: inline-block !important; }
 @media (max-width: 760px) { html.is-teacher .bottomnav .teacher-only { display: flex !important; } }
+.student-only { display: none !important; }
+html.is-student .mainnav .student-only { display: inline-block !important; }
+@media (max-width: 760px) { html.is-student .bottomnav .student-only { display: flex !important; } }
+/* Con 7 opciones en el menú, se compacta antes */
+@media (max-width: 1240px) { .mainnav a { padding: 8px 9px; font-size: .9rem; } .mainnav a span { display: none; } }
+@media (max-width: 760px) { .bottomnav a { font-size: .62rem; } }
