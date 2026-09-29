@@ -66,6 +66,16 @@
         </div>
       </section>
 
+      ${O9.cloud.enabled && O9.cloud.ready && !O9.cloud.user ? `
+      <section class="section">
+        <div class="banner" style="border-color:var(--blue-100);background:linear-gradient(90deg,var(--blue-50),#fff)">
+          <span class="b-ico">☁️</span>
+          <div class="b-text"><b>Crea tu cuenta gratis</b>
+          <span class="muted">Guarda tu progreso en la nube y continúa desde cualquier computador o celular.</span></div>
+          <a class="btn" href="#/cuenta">Registrarme</a>
+        </div>
+      </section>` : ''}
+
       ${!s.diagnostic ? `
       <section class="section">
         <div class="banner">

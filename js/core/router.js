@@ -12,6 +12,7 @@
  *  #/laboratorio/:app    Aprende haciendo (word | excel)
  *  #/proyectos  #/proyecto/:id   Proyectos finales
  *  #/final               Certificado de curso completo
+ *  #/cuenta              Registro / inicio de sesión (Firebase)
  */
 (function (O9) {
   'use strict';
@@ -31,7 +32,8 @@
     [/^laboratorio(?:\/(word|excel))?$/, 'lab', (m) => m[1] || 'word', 'Laboratorio'],
     [/^proyectos$/, 'projects', 'retos', 'Proyectos finales'],
     [/^proyecto\/([\w-]+)$/, 'project', 'retos', 'Proyecto final'],
-    [/^final$/, 'final', 'progreso', '¡Curso completado!']
+    [/^final$/, 'final', 'progreso', '¡Curso completado!'],
+    [/^cuenta$/, 'account', 'perfil', 'Mi cuenta']
   ];
 
   function parse() {
@@ -50,6 +52,13 @@
     const root = $('#app');
     const route = parse();
     if (!route) { location.replace('#/'); return; }
+
+    // Si el docente exige registro, sin sesión solo se puede ver la pantalla de cuenta
+    const c = O9.cloud;
+    if (c && c.enabled && c.requireLogin && c.ready && !c.user && route.view !== 'account') {
+      location.replace('#/cuenta');
+      return;
+    }
 
     // Marca la sección activa en ambos menús
     $$('[data-nav]').forEach((a) => {

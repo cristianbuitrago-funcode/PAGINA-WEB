@@ -38,6 +38,12 @@
             ${O9.ui.levelBlock()}
             <p class="muted" style="margin-top:10px;font-size:.9rem">Estudiando desde el ${new Date(s.createdAt).toLocaleDateString('es-CO')}.</p>
           </div>
+          ${O9.cloud.enabled ? `<div class="card">
+            <h3>☁️ Cuenta</h3>
+            ${O9.cloud.user
+              ? `<p class="muted" style="font-size:.92rem">Sesión iniciada como <b>${esc(O9.cloud.user.email || '')}</b>. Tu progreso se guarda en la nube.</p><a class="btn btn-sm btn-light" href="#/cuenta">Ver mi cuenta</a>`
+              : '<p class="muted" style="font-size:.92rem">Regístrate para guardar tu progreso en la nube.</p><a class="btn btn-sm" href="#/cuenta">Iniciar sesión o registrarme</a>'}
+          </div>` : ''}
           <div class="card">
             <h3>💾 Tu progreso</h3>
             <p class="muted" style="font-size:.92rem">${O9.store.isPersistent()

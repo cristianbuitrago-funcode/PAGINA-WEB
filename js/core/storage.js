@@ -98,6 +98,17 @@
       memory = migrate(data);
       save();
       O9.util.emit('state:changed', memory);
+    },
+    /** Reemplaza el estado completo (se usa al traer el progreso desde la nube). */
+    replace(data) {
+      memory = migrate(data);
+      save();
+      O9.util.emit('state:replaced', memory);
+    },
+    /** true si el estudiante aún no ha hecho nada (estado recién creado). */
+    isEmpty() {
+      const s = load();
+      return s.xp === 0 && !Object.keys(s.topics).length && !s.diagnostic;
     }
   };
 
