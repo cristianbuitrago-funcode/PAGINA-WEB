@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Ofimática 9°: aprende Word y Excel haciendo, practicando y superando retos." />
+  <meta name="theme-color" content="#2563eb" />
+  <title>Ofimática 9°</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+
+  <!-- Tipografía (si no hay internet se usan las fuentes del sistema) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Estilos: base → layout → componentes → simuladores → vistas -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/simulators.css" />
+  <link rel="stylesheet" href="css/views.css" />
+</head>
+<body>
+  <a class="skip-link" href="#app">Saltar al contenido</a>
+
+  <!-- ===== Barra superior ===== -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="#/" class="brand" aria-label="Ofimática 9°, ir al inicio">
+        <span class="brand-logo" aria-hidden="true">9°</span>
+        <span class="brand-name">Ofimática <b>9°</b></span>
+      </a>
+
+      <nav class="mainnav" aria-label="Navegación principal">
+        <a href="#/" data-nav="home"><span aria-hidden="true">🏠</span> Inicio</a>
+        <a href="#/word" data-nav="word"><span aria-hidden="true">📝</span> Word</a>
+        <a href="#/excel" data-nav="excel"><span aria-hidden="true">📊</span> Excel</a>
+        <a href="#/retos" data-nav="retos"><span aria-hidden="true">⚔️</span> Retos</a>
+        <a href="#/progreso" data-nav="progreso"><span aria-hidden="true">📈</span> Progreso</a>
+        <a href="#/perfil" data-nav="perfil"><span aria-hidden="true">👤</span> Perfil</a>
+      </nav>
+
+      <!-- Resumen de gamificación siempre visible -->
+      <a href="#/progreso" class="xp-chip" id="xpChip" aria-label="Tu nivel y experiencia">
+        <span class="xp-chip-level" id="xpChipLevel">Nv 1</span>
+        <span class="xp-chip-bar"><span id="xpChipFill"></span></span>
+        <span class="xp-chip-xp" id="xpChipXp">0 XP</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ===== Contenido (lo pinta el router) ===== -->
+  <main id="app" class="app" tabindex="-1"></main>
+
+  <!-- ===== Navegación inferior para celulares ===== -->
+  <nav class="bottomnav" aria-label="Navegación móvil">
+    <a href="#/" data-nav="home"><span aria-hidden="true">🏠</span>Inicio</a>
+    <a href="#/word" data-nav="word"><span aria-hidden="true">📝</span>Word</a>
+    <a href="#/excel" data-nav="excel"><span aria-hidden="true">📊</span>Excel</a>
+    <a href="#/retos" data-nav="retos"><span aria-hidden="true">⚔️</span>Retos</a>
+    <a href="#/progreso" data-nav="progreso"><span aria-hidden="true">📈</span>Progreso</a>
+    <a href="#/perfil" data-nav="perfil"><span aria-hidden="true">👤</span>Perfil</a>
+  </nav>
+
+  <!-- Capas globales: notificaciones, ventanas modales y confeti -->
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="modalRoot"></div>
+  <canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
+
+  <!-- ===================== SCRIPTS =====================
+       Se usan scripts clásicos (no módulos ES) para que la página
+       funcione incluso abriendo index.html directamente (file://).
+       Todo vive en el espacio de nombres global window.O9.        -->
+
+  <!-- 1. Núcleo -->
+  <script src="js/core/namespace.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/storage.js"></script>
+
+  <!-- 2. Datos (contenido educativo, sin lógica) -->
+  <script src="js/data/gamification-data.js"></script>
+  <script src="js/data/word-lessons.js"></script>
+  <script src="js/data/excel-lessons.js"></script>
+  <script src="js/data/challenges.js"></script>
+  <script src="js/data/diagnostic.js"></script>
+  <script src="js/data/lab.js"></script>
+  <script src="js/data/projects.js"></script>
+
+  <!-- 3. Motores (cálculo de fórmulas, gráficos, validaciones) -->
+  <script src="js/engine/formula-engine.js"></script>
+  <script src="js/engine/charts.js"></script>
+  <script src="js/engine/word-checks.js"></script>
+  <script src="js/engine/excel-checks.js"></script>
+
+  <!-- 4. Progreso y gamificación -->
+  <script src="js/core/progress.js"></script>
+  <script src="js/core/gamification.js"></script>
+
+  <!-- 5. Componentes de interfaz -->
+  <script src="js/components/ui.js"></script>
+  <script src="js/components/blocks.js"></script>
+  <script src="js/components/exercises.js"></script>
+  <script src="js/components/word-sim.js"></script>
+  <script src="js/components/excel-sim.js"></script>
+  <script src="js/components/tasks.js"></script>
+
+  <!-- 6. Vistas (pantallas) -->
+  <script src="js/views/home.js"></script>
+  <script src="js/views/module.js"></script>
+  <script src="js/views/lesson.js"></script>
+  <script src="js/views/challenges.js"></script>
+  <script src="js/views/progress.js"></script>
+  <script src="js/views/profile.js"></script>
+  <script src="js/views/diagnostic.js"></script>
+  <script src="js/views/lab.js"></script>
+  <script src="js/views/projects.js"></script>
+
+  <!-- 7. Arranque -->
+  <script src="js/core/router.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

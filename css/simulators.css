@@ -1,0 +1,209 @@
+/* =========================================================
+   SIMULADORES: mini Word y mini Excel
+   ========================================================= */
+
+/* ================== MINI WORD ================== */
+.wd {
+  border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; background: #e9edf3;
+  box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+}
+.wd-titlebar {
+  background: var(--word); color: #fff; font-size: .82rem; font-weight: 700; padding: 6px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.wd-titlebar .dots { display: flex; gap: 5px; }
+.wd-titlebar .dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.5); display: block; }
+.wd-tabs { display: flex; gap: 2px; background: var(--word); padding: 0 8px; overflow-x: auto; }
+.wd-tab {
+  border: 0; background: transparent; color: rgba(255,255,255,.85); font-weight: 700; font-size: .85rem;
+  padding: 7px 14px; border-radius: 8px 8px 0 0; white-space: nowrap;
+}
+.wd-tab.on { background: #f8fafc; color: var(--word); }
+.wd-ribbon { background: #f8fafc; border-bottom: 1px solid var(--line); padding: 8px; }
+.wd-panel { display: none; flex-wrap: wrap; gap: 6px; align-items: center; }
+.wd-panel.on { display: flex; }
+.wd-group { display: flex; gap: 3px; align-items: center; padding: 0 6px; border-right: 1px solid var(--line); }
+.wd-group:last-child { border-right: 0; }
+.tb {
+  min-width: 34px; height: 34px; padding: 0 8px; border: 1px solid transparent; border-radius: 8px;
+  background: transparent; font-weight: 800; font-size: .9rem; color: var(--ink-2);
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap;
+}
+.tb:hover { background: var(--blue-50); border-color: var(--blue-100); }
+.tb.on { background: var(--blue-100); border-color: var(--blue); color: var(--blue-700); }
+.tb small { font-size: .72rem; font-weight: 700; }
+.tb-select { height: 34px; border: 1px solid var(--line-2); border-radius: 8px; background: #fff; padding: 0 6px; font-size: .85rem; font-weight: 700; }
+.tb-colors { display: flex; gap: 3px; }
+.tb-color { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line-2); padding: 0; }
+.tb-color:hover { transform: scale(1.12); }
+
+.wd-canvas { padding: 20px 12px; overflow: auto; max-height: 560px; }
+.wd.tall .wd-canvas { max-height: 720px; }
+.wd-page {
+  background: #fff; margin: 0 auto; max-width: 640px; min-height: 420px; box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  padding: 32px 48px; display: flex; flex-direction: column; position: relative; transition: max-width .3s, padding .3s;
+  font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif; font-size: 11pt; color: #111;
+}
+.wd-page.landscape { max-width: 860px; min-height: 360px; }
+.wd-page.m-narrow { padding: 18px 20px; }
+.wd-page.m-wide { padding: 48px 90px; }
+.wd-page.margins-visible { background-image: linear-gradient(#fff, #fff); }
+.wd-page .margin-guide { position: absolute; inset: 0; pointer-events: none; }
+
+.wd-header, .wd-footer {
+  min-height: 26px; font-size: 9pt; color: #555; border: 1px dashed transparent; border-radius: 4px; padding: 2px 6px;
+  transition: border-color .2s, background .2s;
+}
+.wd-header { margin-bottom: 14px; }
+.wd-footer { margin-top: 14px; display: flex; align-items: center; gap: 10px; }
+.wd-footer-text { flex: 1; outline: none; min-height: 18px; }
+.wd-header { outline: none; }
+.wd.show-hf .wd-header, .wd.show-hf .wd-footer { border-color: #93b4f5; background: #f5f8ff; }
+.wd-header:empty::before, .wd-footer-text:empty::before { content: attr(data-placeholder); color: #a0aec0; font-style: italic; }
+.wd.hide-hf .wd-header, .wd.hide-hf .wd-footer { display: none; }
+.wd-pagenum { font-weight: 700; color: #333; margin-left: auto; }
+.wd-pagenum.pos-center { margin: 0 auto; }
+
+.wd-body {
+  flex: 1; outline: none; min-height: 260px; line-height: 1.15; word-wrap: break-word; overflow-wrap: anywhere;
+}
+.wd-body:empty::before { content: attr(data-placeholder); color: #a0aec0; }
+.wd-body p, .wd-body div { margin: 0 0 8pt; }
+.wd-body h1 { font-size: 20pt; color: #1f3864; margin: 0 0 10pt; font-weight: 700; }
+.wd-body h2 { font-size: 15pt; color: #2f5496; margin: 8pt 0 8pt; font-weight: 700; }
+.wd-body ul, .wd-body ol { margin: 0 0 8pt; padding-left: 28px; }
+.wd-body img.wd-img { display: block; margin: 8px auto; max-width: 100%; border-radius: 4px; cursor: pointer; }
+.wd-body img.wd-img.sz-s { width: 120px; }
+.wd-body img.wd-img.sz-m { width: 220px; }
+.wd-body img.wd-img.sz-l { width: 360px; }
+.wd-body img.wd-img.sel { outline: 3px solid var(--blue); outline-offset: 2px; }
+.wd-body table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; }
+.wd-body td, .wd-body th { border: 1px solid #555; padding: 4px 6px; min-width: 40px; height: 22px; vertical-align: top; }
+.wd-body hr.wd-pagebreak {
+  border: 0; height: 26px; margin: 16px -48px; position: relative; background: #e9edf3;
+  box-shadow: inset 0 6px 6px -6px rgba(0,0,0,.25), inset 0 -6px 6px -6px rgba(0,0,0,.25);
+}
+.wd-body hr.wd-pagebreak::after {
+  content: "··········· Salto de página ···········"; position: absolute; left: 0; right: 0; top: 4px;
+  text-align: center; font-size: 8pt; color: #7a8599; font-family: var(--font);
+}
+.wd-page.m-narrow .wd-body hr.wd-pagebreak { margin: 16px -20px; }
+.wd-page.m-wide .wd-body hr.wd-pagebreak { margin: 16px -90px; }
+
+.wd-status {
+  background: var(--word); color: #fff; font-size: .78rem; font-weight: 700; padding: 4px 12px;
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.wd-pop {
+  position: absolute; z-index: 30; background: #fff; border: 1px solid var(--line-2); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 10px; animation: fadeUp .15s;
+}
+.wd-ribbon { position: relative; }
+.tgrid { display: grid; grid-template-columns: repeat(6, 18px); gap: 3px; }
+.tgrid span { width: 18px; height: 18px; border: 1px solid var(--line-2); border-radius: 3px; background: #fff; }
+.tgrid span.on { background: var(--blue-100); border-color: var(--blue); }
+.tgrid-label { font-size: .8rem; font-weight: 800; text-align: center; margin-top: 6px; }
+.img-pick { display: grid; grid-template-columns: repeat(4, 64px); gap: 6px; }
+.img-pick button { border: 2px solid var(--line); border-radius: 10px; background: #fff; padding: 4px; }
+.img-pick button:hover { border-color: var(--blue); }
+.img-pick img { width: 100%; display: block; }
+
+@media (max-width: 560px) {
+  .wd-page { padding: 20px 18px; }
+  .wd-page.m-wide { padding: 26px 30px; }
+  .wd-body hr.wd-pagebreak, .wd-page.m-wide .wd-body hr.wd-pagebreak { margin: 16px -18px; }
+  .wd-canvas { padding: 10px 6px; }
+  .wd-group { padding: 0 3px; }
+}
+
+/* ================== MINI EXCEL ================== */
+.xl {
+  border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; background: #fff;
+  box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+}
+.xl-titlebar { background: var(--excel); color: #fff; font-size: .82rem; font-weight: 700; padding: 6px 12px; display: flex; gap: 8px; align-items: center; }
+.xl-titlebar .dots { display: flex; gap: 5px; }
+.xl-titlebar .dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.5); display: block; }
+.xl-toolbar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; background: #f6f8f7; border-bottom: 1px solid var(--line); align-items: center; }
+.xl-toolbar .tb:hover { background: var(--excel-soft); border-color: #b7e4cb; }
+.xl-toolbar .tb.on { background: #c9eed9; border-color: var(--excel); color: var(--excel); }
+.xl-sep { width: 1px; height: 24px; background: var(--line-2); margin: 0 4px; }
+.xl-fbar { display: flex; align-items: center; gap: 0; border-bottom: 1px solid var(--line); background: #fff; }
+.xl-name { width: 64px; text-align: center; font-weight: 800; font-size: .85rem; padding: 6px; border-right: 1px solid var(--line); color: var(--excel); }
+.xl-fx { padding: 0 10px; font-style: italic; font-weight: 800; color: var(--muted); border-right: 1px solid var(--line); }
+.xl-input {
+  flex: 1; border: 0; padding: 8px 10px; font-family: ui-monospace, Consolas, monospace; font-size: .92rem; outline: none; min-width: 0;
+}
+.xl-input:focus { background: #fbfffd; }
+.xl-grid-wrap { overflow: auto; max-height: 460px; position: relative; }
+.xl-grid { border-collapse: separate; border-spacing: 0; font-size: .88rem; }
+.xl-grid th {
+  position: sticky; background: #eef1f4; color: #555; font-weight: 700; font-size: .78rem;
+  border-right: 1px solid #d4d9e1; border-bottom: 1px solid #d4d9e1; padding: 3px 6px; z-index: 2; user-select: none;
+}
+.xl-grid thead th { top: 0; text-align: center; min-width: 88px; }
+.xl-grid thead th:first-child { left: 0; z-index: 3; min-width: 40px; width: 40px; }
+.xl-grid tbody th { left: 0; text-align: center; width: 40px; min-width: 40px; }
+.xl-grid th.hl { background: #cfe9da; color: var(--excel); }
+.xl-grid td { border-right: 1px solid #e3e7ec; border-bottom: 1px solid #e3e7ec; padding: 0; position: relative; background: #fff; }
+.xl-grid td.b-all { border: 1px solid #333 !important; }
+.xl-cell {
+  width: 100%; min-width: 88px; border: 0; padding: 5px 7px; background: transparent; outline: none; font-size: .88rem;
+  font-family: var(--font); color: #111; cursor: cell; text-overflow: ellipsis;
+}
+.xl-cell.num { text-align: right; font-variant-numeric: tabular-nums; }
+.xl-cell.err { color: var(--red); font-weight: 800; text-align: center; }
+.xl-cell.fb { font-weight: 800; }
+.xl-cell.fi { font-style: italic; }
+.xl-cell.al-left { text-align: left; }
+.xl-cell.al-center { text-align: center; }
+.xl-cell.al-right { text-align: right; }
+.xl-cell:focus { cursor: text; }
+.xl-grid td.sel { background: #e3f3ea !important; }
+.xl-grid td.active { box-shadow: inset 0 0 0 2px var(--excel); z-index: 1; }
+.xl-grid td.locked .xl-cell { color: #333; }
+.xl-grid td.target { box-shadow: inset 0 0 0 2px var(--gold); animation: pulse 2s infinite; }
+.xl-grid td.target .xl-cell { background: rgba(254, 243, 199, .6); }
+.xl-grid td.ok-cell { box-shadow: inset 0 0 0 2px var(--green-500); }
+.xl-grid td.ok-cell .xl-cell { background: rgba(220, 252, 231, .7); }
+.xl-grid td.bad-cell { box-shadow: inset 0 0 0 2px #f87171; }
+.xl-grid td.ref-hint { background: #e0edff !important; }
+.xl-sheets { display: flex; gap: 2px; background: #f6f8f7; border-top: 1px solid var(--line); padding: 0 8px; font-size: .8rem; font-weight: 700; }
+.xl-sheets span { padding: 5px 14px; border-bottom: 3px solid var(--excel); color: var(--excel); background: #fff; }
+.xl-sheets em { font-style: normal; color: var(--muted); padding: 5px 10px; }
+.xl-charts { display: grid; gap: 12px; padding: 12px; background: #f6f8f7; border-top: 1px solid var(--line); }
+.xl-charts:empty { display: none; }
+.xl-chart { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; position: relative; }
+.xl-chart .x { position: absolute; right: 8px; top: 8px; border: 0; background: #f1f5f9; border-radius: 8px; width: 28px; height: 28px; font-weight: 900; }
+.xl-chart svg { width: 100%; height: auto; display: block; }
+.xl-chart-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end; padding: 12px; background: #fbfdfc; border-top: 1px solid var(--line); }
+.xl-chart-form label { font-size: .8rem; font-weight: 800; color: var(--muted); display: grid; gap: 4px; }
+.xl-chart-form input, .xl-chart-form select { border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 9px; font-weight: 700; }
+.xl-chart-types { display: flex; gap: 6px; }
+.xl-chart-types button { flex: 1; border: 2px solid var(--line); border-radius: 10px; background: #fff; padding: 6px; font-weight: 800; font-size: .8rem; }
+.xl-chart-types button.on { border-color: var(--excel); background: var(--excel-soft); color: var(--excel); }
+.xl-msg { font-size: .85rem; font-weight: 700; padding: 6px 12px; color: var(--muted); border-top: 1px solid var(--line); background: #fff; min-height: 30px; }
+.xl-msg.err { color: var(--red); background: var(--red-50); }
+.xl-msg.tip { color: var(--excel); background: var(--excel-soft); }
+
+/* Colores de relleno de celda */
+.fill-blue { background: #dbeafe !important; }
+.fill-green { background: #dcfce7 !important; }
+.fill-yellow { background: #fef9c3 !important; }
+.fill-purple { background: #ede9fe !important; }
+.fill-orange { background: #ffedd5 !important; }
+.fill-dark { background: #1e3a8a !important; }
+.fill-dark .xl-cell { color: #fff; }
+
+/* ================== Tarea con validación ================== */
+.task { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.task.task-wide { grid-template-columns: minmax(0, 1fr); }
+.task-side { position: sticky; top: calc(var(--topbar-h) + 12px); }
+.task-instructions { background: var(--purple-50); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.task-instructions h4 { margin: 0 0 6px; color: var(--purple); }
+.task-instructions ol, .task-instructions ul { margin: 0; padding-left: 20px; }
+.task-instructions li { margin: 4px 0; }
+@media (max-width: 960px) {
+  .task { grid-template-columns: minmax(0, 1fr); }
+  .task-side { position: static; }
+}
