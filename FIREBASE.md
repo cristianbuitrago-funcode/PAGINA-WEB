@@ -44,9 +44,30 @@ La plataforma ya trae todo el código. Tú solo tienes que crear el proyecto y p
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
-       match /usuarios/{uid} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
+
+       // ¿Quien consulta es docente? (tiene un documento en docentes/{su correo}
+       // y su correo está verificado, por ejemplo al entrar con Google)
+       function esDocente() {
+         return request.auth != null
+           && request.auth.token.email_verified == true
+           && exists(/databases/$(database)/documents/docentes/$(request.auth.token.email));
        }
+
+       // Progreso de cada estudiante: solo el dueño lo escribe;
+       // lo pueden leer el dueño y los docentes
+       match /usuarios/{uid} {
+         allow read: if request.auth != null && (request.auth.uid == uid || esDocente());
+         allow write: if request.auth != null && request.auth.uid == uid;
+       }
+
+       // Lista de docentes: cada uno puede comprobar si está en ella.
+       // Se administra solo desde la consola de Firebase.
+       match /docentes/{email} {
+         allow read: if request.auth != null && request.auth.token.email == email;
+         allow write: if false;
+       }
+
+       // Todo lo demás está cerrado
        match /{document=**} {
          allow read, write: if false;
        }
@@ -56,7 +77,7 @@ La plataforma ya trae todo el código. Tú solo tienes que crear el proyecto y p
 
 5. Pulsa **Publicar**.
 
-Estas reglas hacen que **cada estudiante solo pueda ver y modificar su propio progreso**.
+Estas reglas hacen que **cada estudiante solo pueda ver y modificar su propio progreso**, y que solo los docentes registrados puedan consultar el avance de todos.
 
 ## Paso 5 · Pegar la configuración en la página
 
@@ -104,7 +125,32 @@ Estas reglas hacen que **cada estudiante solo pueda ver y modificar su propio pr
 - **Cerrar sesión** borra el progreso de ese navegador; queda guardado en la nube. Es ideal para los computadores compartidos del colegio.
 - Si alguien olvida su contraseña, la pantalla de inicio de sesión tiene **"¿Olvidaste tu contraseña?"**, que envía un correo para crear una nueva.
 
-## Ver a los estudiantes registrados
+## Panel del docente 👩‍🏫
+
+La plataforma trae un panel en **`#/docente`** (también se abre desde **Perfil → ¿Eres docente?**). Muestra:
+
+- Número de estudiantes, progreso promedio, XP promedio, estudiantes activos en los últimos 7 días y cuántos completaron el curso.
+- Gráficos de progreso promedio por curso y de estudiantes por nivel.
+- **Temas donde más se equivocan**: los temas con más errores, ideales para repasar en clase.
+- Una tabla con todos los estudiantes. Se puede filtrar por curso, buscar por nombre, ordenar por cualquier columna y hacer clic en un estudiante para ver su detalle.
+- El botón **Descargar CSV** exporta la tabla a un archivo que abre directamente en Excel.
+
+Para conocer el panel sin configurar nada, abre **`#/docente/demo`**, que usa datos inventados.
+
+### Registrar a un docente
+
+Por seguridad, solo pueden ver el panel las cuentas que tú agregues a mano:
+
+1. El docente entra a la plataforma y **inicia sesión con Google**. El correo de Google ya viene verificado; las reglas exigen correo verificado.
+2. En Firebase: **Firestore Database → Datos → Iniciar colección**.
+3. ID de la colección: `docentes`.
+4. ID del documento: **el correo del docente en minúsculas**, por ejemplo `profe.maria@gmail.com`.
+5. Agrega un campo cualquiera, por ejemplo `nombre` (string) = `María Ruiz`, y pulsa **Guardar**.
+6. Para más docentes, en la colección `docentes` pulsa **Agregar documento** y repite los pasos 4 y 5.
+
+Además, **publica las reglas actualizadas**: copia de nuevo todo el contenido de `firestore.rules` en **Firestore → Reglas** y pulsa **Publicar**. Las reglas nuevas son las que permiten a los docentes leer el progreso de los estudiantes.
+
+## Ver a los estudiantes registrados en la consola
 
 - **Authentication → Usuarios**: lista de cuentas (correo y fecha de registro). Desde aquí puedes eliminar cuentas o restablecer contraseñas.
 - **Firestore → Datos → usuarios**: el avance de cada uno (xp, progress, course...).

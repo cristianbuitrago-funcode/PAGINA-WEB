@@ -1,10 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Cada estudiante solo puede leer y escribir su propio documento de progreso
-    match /usuarios/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+    // ¿Quien consulta es docente? (tiene un documento en docentes/{su correo}
+    // y su correo está verificado, por ejemplo al entrar con Google)
+    function esDocente() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/docentes/$(request.auth.token.email));
     }
+
+    // Progreso de cada estudiante: solo el dueño lo escribe;
+    // lo pueden leer el dueño y los docentes
+    match /usuarios/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || esDocente());
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Lista de docentes: cada uno puede comprobar si está en ella.
+    // Se administra solo desde la consola de Firebase.
+    match /docentes/{email} {
+      allow read: if request.auth != null && request.auth.token.email == email;
+      allow write: if false;
+    }
+
     // Todo lo demás está cerrado
     match /{document=**} {
       allow read, write: if false;

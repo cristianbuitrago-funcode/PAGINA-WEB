@@ -65,7 +65,10 @@
       topicsDone: ov.topicsDone,
       challengesDone: ov.challengesDone,
       badges: Object.keys(state.badges).length,
-      courseComplete: !!state.courseComplete
+      courseComplete: !!state.courseComplete,
+      projectWord: !!(state.projects.word || {}).done,
+      projectExcel: !!(state.projects.excel || {}).done,
+      diagnostic: state.diagnostic ? state.diagnostic.band : ''
     };
   }
 
@@ -180,7 +183,40 @@
       O9.store.reset();
       O9.util.emit('state:replaced');
     },
-    syncNow: push
+    syncNow: push,
+
+    /**
+     * ¿La cuenta actual es de un docente?
+     * Un docente es quien tiene un documento en "docentes/{su correo}" (se crea
+     * a mano en la consola de Firebase; ver FIREBASE.md).
+     */
+    async isTeacher() {
+      if (!cloud.user || !cloud.user.email) return false;
+      if (cloud._teacher !== undefined && cloud._teacherUid === cloud.user.uid) return cloud._teacher;
+      let ok = false;
+      try {
+        const snap = await db.collection('docentes').doc(cloud.user.email.toLowerCase()).get();
+        ok = snap.exists;
+      } catch (e) { ok = false; }
+      cloud._teacher = ok;
+      cloud._teacherUid = cloud.user.uid;
+      return ok;
+    },
+
+    /** Lista de estudiantes registrados (solo docentes, lo controlan las reglas). */
+    async listStudents() {
+      const snap = await db.collection('usuarios').get();
+      return snap.docs.map((d) => {
+        const x = d.data();
+        let state = null;
+        try { state = x.data ? JSON.parse(x.data) : null; } catch (e) { state = null; }
+        return Object.assign({}, x, {
+          uid: d.id,
+          state,
+          updatedAt: x.updatedAt && x.updatedAt.toMillis ? x.updatedAt.toMillis() : null
+        });
+      });
+    }
   };
 
   O9.cloud = cloud;

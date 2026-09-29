@@ -116,6 +116,16 @@
         </div>
         <p class="muted" style="font-size:.85rem;margin-top:14px">Al cerrar sesión, tu progreso queda guardado en tu cuenta y se borra de este navegador (ideal en los computadores del colegio).</p>
       </section></div>`;
+    cloud.isTeacher().then((ok) => {
+      if (ok && document.body.contains(root)) {
+        const a = document.createElement('a');
+        a.className = 'btn btn-gold';
+        a.href = '#/docente';
+        a.textContent = '👩‍🏫 Panel del docente';
+        const row = root.querySelector('.row');
+        if (row) row.prepend(a);
+      }
+    });
     $('[data-sync]', root).onclick = async () => { await cloud.syncNow(); O9.ui.toast(cloud.error ? cloud.error : 'Progreso guardado en la nube', cloud.error ? 'error' : 'success', '☁️'); renderAccount(root); };
     $('[data-logout]', root).onclick = async () => {
       if (!(await O9.ui.confirm('¿Cerrar sesión?', 'Tu progreso queda guardado en tu cuenta.', 'Cerrar sesión', 'btn-purple'))) return;

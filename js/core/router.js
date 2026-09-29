@@ -13,6 +13,7 @@
  *  #/proyectos  #/proyecto/:id   Proyectos finales
  *  #/final               Certificado de curso completo
  *  #/cuenta              Registro / inicio de sesión (Firebase)
+ *  #/docente[/demo]      Panel del docente (avance de los estudiantes)
  */
 (function (O9) {
   'use strict';
@@ -33,7 +34,8 @@
     [/^proyectos$/, 'projects', 'retos', 'Proyectos finales'],
     [/^proyecto\/([\w-]+)$/, 'project', 'retos', 'Proyecto final'],
     [/^final$/, 'final', 'progreso', '¡Curso completado!'],
-    [/^cuenta$/, 'account', 'perfil', 'Mi cuenta']
+    [/^cuenta$/, 'account', 'perfil', 'Mi cuenta'],
+    [/^docente(?:\/(demo))?$/, 'teacher', 'perfil', 'Panel del docente']
   ];
 
   function parse() {
@@ -55,7 +57,7 @@
 
     // Si el docente exige registro, sin sesión solo se puede ver la pantalla de cuenta
     const c = O9.cloud;
-    if (c && c.enabled && c.requireLogin && c.ready && !c.user && route.view !== 'account') {
+    if (c && c.enabled && c.requireLogin && c.ready && !c.user && route.view !== 'account' && route.view !== 'teacher') {
       location.replace('#/cuenta');
       return;
     }

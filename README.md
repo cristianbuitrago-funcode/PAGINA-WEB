@@ -13,7 +13,7 @@ También funciona publicada en cualquier hosting estático (GitHub Pages, Netlif
 
 El progreso se guarda automáticamente en `localStorage`. Desde **Perfil** se puede descargar una copia (JSON) y cargarla en otro computador.
 
-**Cuentas de estudiantes (opcional):** con Firebase los estudiantes se registran (correo o Google) y su progreso se guarda en la nube. Sigue la guía **[FIREBASE.md](FIREBASE.md)**: solo hay que crear el proyecto y pegar la configuración en `js/core/firebase-config.js`.
+**Cuentas de estudiantes (opcional):** con Firebase los estudiantes se registran (correo o Google) y su progreso se guarda en la nube. Incluye un **panel del docente** (`#/docente`, demo en `#/docente/demo`). Sigue la guía **[FIREBASE.md](FIREBASE.md)**: solo hay que crear el proyecto y pegar la configuración en `js/core/firebase-config.js`.
 
 ## Qué incluye
 

@@ -59,6 +59,11 @@
             <p class="muted" style="font-size:.92rem">${s.diagnostic ? `Tu último resultado fue <b>${esc(s.diagnostic.band)}</b>.` : 'Aún no lo has hecho.'}</p>
             <a class="btn btn-sm btn-purple" href="#/diagnostico">${s.diagnostic ? 'Repetir diagnóstico' : 'Hacer diagnóstico'}</a>
           </div>
+          <div class="card">
+            <h3>👩‍🏫 ¿Eres docente?</h3>
+            <p class="muted" style="font-size:.92rem">Mira el avance de tus estudiantes registrados: progreso, temas difíciles y exportación a Excel.</p>
+            <a class="btn btn-sm btn-light" href="#/docente">Abrir panel del docente</a>
+          </div>
           <div class="card" style="border-color:var(--red-100)">
             <h3>🗑️ Empezar de cero</h3>
             <p class="muted" style="font-size:.92rem">Borra todo tu progreso, XP e insignias. No se puede deshacer.</p>

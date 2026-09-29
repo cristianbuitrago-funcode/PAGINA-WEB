@@ -199,3 +199,11 @@ a.card.quick, .quick { display: flex; gap: 12px; align-items: center; }
 .mission .m-state { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line-2); display: grid; place-items: center; font-size: .8rem; flex-shrink: 0; }
 
 .lesson-head .pill { white-space: normal; }
+
+/* ---------- Panel del docente ---------- */
+.t-table { width: 100%; }
+.t-table th { position: sticky; top: 0; }
+.t-table th button { border: 0; background: transparent; font: inherit; font-weight: 800; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.t-table td { white-space: normal; vertical-align: middle; }
+.t-table tbody tr { cursor: pointer; transition: background .15s; }
+.t-table tbody tr:hover, .t-table tbody tr:focus { background: var(--blue-50); outline: none; }
